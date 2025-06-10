@@ -1,0 +1,273 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0rem;
+  }
+
+  .dark {
+    --background: 0 0% 5%;
+    --foreground: 0 0% 90%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 90%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 90%;
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 5%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 90%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 25 95% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Override all border-radius to 0 for flat design */
+* {
+  border-radius: 0 !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}
+
+/* Dark mode specific styles */
+.dark {
+  color-scheme: dark;
+}
+
+/* Dark theme with orange accents and black/grey backgrounds */
+.dark .bg-blue-600 {
+  @apply bg-orange-600;
+}
+
+.dark .hover\:bg-blue-700:hover {
+  @apply bg-orange-700;
+}
+
+.dark .bg-blue-50 {
+  @apply bg-orange-950/30;
+}
+
+.dark .text-blue-700 {
+  @apply text-orange-400;
+}
+
+.dark .text-blue-600 {
+  @apply text-orange-500;
+}
+
+.dark .border-blue-600 {
+  @apply border-orange-600;
+}
+
+.dark .bg-blue-100 {
+  @apply bg-orange-950/50;
+}
+
+.dark .text-green-600 {
+  @apply text-green-400;
+}
+
+.dark .bg-green-100 {
+  @apply bg-green-950/30;
+}
+
+.dark .text-green-800 {
+  @apply text-green-300;
+}
+
+.dark .bg-red-100 {
+  @apply bg-red-950/30;
+}
+
+.dark .text-red-800 {
+  @apply text-red-300;
+}
+
+.dark .text-red-600 {
+  @apply text-red-400;
+}
+
+.dark .hover\:text-red-700:hover {
+  @apply text-red-300;
+}
+
+.dark .hover\:bg-red-50:hover {
+  @apply bg-red-950/20;
+}
+
+.dark .border-red-200 {
+  @apply border-red-800/50;
+}
+
+.dark .bg-yellow-100 {
+  @apply bg-yellow-950/30;
+}
+
+.dark .text-yellow-800 {
+  @apply text-yellow-300;
+}
+
+.dark .text-orange-600 {
+  @apply text-orange-400;
+}
+
+/* Black and grey backgrounds with improved contrast */
+.dark .bg-gray-50 {
+  @apply bg-black;
+}
+
+.dark .bg-slate-50 {
+  @apply bg-gray-850;
+}
+
+.dark .bg-white {
+  @apply bg-gray-900;
+}
+
+.dark .bg-slate-900 {
+  @apply bg-black;
+}
+
+.dark .bg-slate-800 {
+  @apply bg-gray-850;
+}
+
+.dark .border-slate-200 {
+  @apply border-gray-700;
+}
+
+.dark .border-slate-100 {
+  @apply border-gray-800;
+}
+
+.dark .border-slate-700 {
+  @apply border-gray-600;
+}
+
+.dark .text-slate-900 {
+  @apply text-gray-50;
+}
+
+.dark .text-slate-600 {
+  @apply text-gray-300;
+}
+
+.dark .text-slate-500 {
+  @apply text-gray-400;
+}
+
+.dark .text-slate-400 {
+  @apply text-gray-500;
+}
+
+.dark .hover\:bg-slate-50:hover {
+  @apply bg-gray-850;
+}
+
+.dark .hover\:bg-slate-100:hover {
+  @apply bg-gray-750;
+}
+
+.dark .hover\:bg-slate-800:hover {
+  @apply bg-gray-750;
+}
+
+/* Custom grey shades for better contrast */
+.bg-gray-850 {
+  background-color: #1a1a1a;
+}
+
+.bg-gray-750 {
+  background-color: #2a2a2a;
+}
+
+/* Card and component contrast improvements */
+.dark .border {
+  border-color: rgba(75, 75, 75, 0.5);
+}
+
+.dark .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Table row hover states */
+.dark .hover\:bg-slate-50:hover {
+  background-color: rgba(50, 50, 50, 0.5);
+}
+
+/* Input fields with better contrast */
+.dark input, .dark select, .dark textarea {
+  background-color: #1a1a1a;
+  border-color: #3a3a3a;
+}
+
+.dark input:focus, .dark select:focus, .dark textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+/* Button contrast improvements */
+.dark .bg-blue-600 {
+  background-color: #ff7700;
+}
+
+.dark .hover\:bg-blue-700:hover {
+  background-color: #ff8800;
+}
+
+/* Active navigation item with better contrast */
+.dark .data-\[active\=true\]\:bg-orange-950\/30 {
+  background-color: rgba(255, 119, 0, 0.15);
+}
