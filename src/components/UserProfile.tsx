@@ -24,9 +24,6 @@ export function UserProfile() {
             const userData = await UserService.findById(userId)
             if (userData) {
                 setUser(userData)
-            } else {
-                signOut({ redirect: false })
-                router.push("/login")
             }
         }
 

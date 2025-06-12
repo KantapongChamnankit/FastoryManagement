@@ -88,9 +88,7 @@ export default function ProductsPage() {
     async function fetchUserData() {
       const users = await UserService.findById((session?.user as any)?.id as string);
       if (!users) {
-        const router = useRouter();
-        signOut();
-        router.push("/login");
+        return;
       }
       console.log("User Data:", users);
       setUserData(users);

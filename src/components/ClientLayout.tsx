@@ -6,6 +6,7 @@ import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
 import { Toaster } from "@/components/ui/toaster"
 import { LoadingScreen } from "@/components/LoadingScreen"
+import { Chatbot } from "@/components/Chatbot"
 
 export default function ClientLayout({
   children,
@@ -22,12 +23,12 @@ export default function ClientLayout({
         <SidebarProvider defaultOpen={true}>
           <div className="flex min-h-screen w-full">
             <AppSidebar />
-            <main className="flex-1 bg-gray-50 dark:bg-black">{children}</main>
+            <main className="flex-1 bg-gray-50 dark:bg-[#050505]">{children}</main>
           </div>
         </SidebarProvider>
       )}
       <Toaster />
+      <Chatbot />
     </>
   )
 }
-

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -60,7 +60,7 @@ export default function SellPage() {
 
     try {
       // Find product by barcode
-      const product = await ProductService.findByBarcode(barcode)
+      const product = products.find((p) => p.barcode === barcode)
 
       if (product) {
         // Check if product already in cart
@@ -91,12 +91,6 @@ export default function SellPage() {
             description: product.name,
           })
         }
-      } else {
-        toast({
-          title: "Product not found",
-          description: "Please check the barcode and try again",
-          variant: "destructive",
-        })
       }
     } catch (error) {
       console.error("Error finding product:", error)
@@ -108,7 +102,6 @@ export default function SellPage() {
     }
 
     // Clear barcode input for next scan
-    setBarcode("")
   }
 
   const updateCartQuantity = (index: number, newQuantity: number) => {
@@ -189,6 +182,18 @@ export default function SellPage() {
       setIsProcessing(false)
     }
   }
+
+  useEffect(() => {
+    async function fetchProductByBarcode() {
+      const product = products.find((p) => p.barcode === barcode.trim())
+      if (product) {
+        handleBarcodeSubmit()
+        setBarcode("")
+      }
+    }
+
+    fetchProductByBarcode()
+  }, [barcode])
 
   const getTotalItems = () => cart.reduce((sum, item) => sum + item.cartQuantity, 0)
   const getTotalAmount = () => cart.reduce((sum, item) => sum + item.price * item.cartQuantity, 0)
@@ -416,7 +421,10 @@ export default function SellPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sales.map((sale) => (
+              {sales
+                .filter((x, i) => i < 10)
+                .sort((a, b) => (b.created_at ?? 0) - (a.created_at ?? 0))
+                .map((sale) => (
                 <TableRow key={sale._id || sale._id} className="border-b border-slate-100 hover:bg-slate-50">
                   <TableCell className="font-medium text-slate-900">
                     {products.find((x) => x._id === sale.products[0].product_id)?.name}
@@ -427,15 +435,15 @@ export default function SellPage() {
                   <TableCell className="text-slate-500 text-sm">
                     {sale.created_at
                       ? new Date(sale.created_at as number)
-                          .toLocaleString("th-TH", {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          })
-                          .replace(/(\d+)\/(\d+)\/(\d+),\s?(\d+):(\d+)/, "$3/$2/$1 $4:$5")
+                        .toLocaleString("th-TH", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                        })
+                        .replace(/(\d+)\/(\d+)\/(\d+),\s?(\d+):(\d+)/, "$3/$2/$1 $4:$5")
                       : ""}
                   </TableCell>
                 </TableRow>

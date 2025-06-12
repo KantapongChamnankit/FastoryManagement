@@ -44,10 +44,6 @@ export function AddProductForm({ onClose, fetchProducts, categories, locks, barc
                 const userData = await UserService.findById((session.user as any).id as string)
                 if (userData) {
                     setUser(userData)
-                } else {
-                    const router = useRouter()
-                    signOut({ redirect: false })
-                    router.push("/login")
                 }
             }
         }
