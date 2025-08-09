@@ -1,18 +1,22 @@
+'use client'
+
 import ClientLayout from "@/components/ClientLayout"
 import { ThemeProvider } from "@/components/ThemeProvider"
 import { LanguageProvider } from "@/contexts"
 import { getServerSession } from "next-auth"
-import { redirect } from "next/navigation"
-import { useRouter } from "next/router"
+import { useSession } from "next-auth/react"
+import { redirect, useRouter } from "next/navigation"
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const session = await getServerSession()
+  const { data: session } = useSession()
+  const router = useRouter()
+
   if (!session) {
-    redirect("/login");
+    router.push("/login");
   }
   return (
     <>

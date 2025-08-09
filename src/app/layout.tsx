@@ -21,11 +21,10 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   const session = await getServerSession()
-
   return (
     <html lang="en">
       <body className={kanit.className}>
-        <ServerSession session={session}>
+        <ServerSession refetchInterval={5} refetchOnWindowFocus={true} session={session}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             {children}
           </ThemeProvider>
