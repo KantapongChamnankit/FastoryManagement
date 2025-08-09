@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { DBConnect } from '@/lib/utils/DBConnect';
 import { User } from '@/lib/models/user';
 import bcrypt from 'bcrypt';
+import { JWT } from 'next-auth/jwt';
 
 export const authOptions: AuthOptions = {
     providers: [
@@ -26,9 +27,9 @@ export const authOptions: AuthOptions = {
 
                 return {
                     id: user._id.toString(),
-                    name: user.name,
+                    name: `${user.first_name} ${user.last_name}`,
                     email: user.email,
-                    role: user.role,
+                    role: user.role_id,
                 };
             },
         }),
@@ -37,18 +38,23 @@ export const authOptions: AuthOptions = {
         strategy: "jwt"
     },
     callbacks: {
-        async jwt({ token, user }: { token: any; user?: any }) {
+        async jwt({ token, user }: { token: JWT; user?: any }) {
             if (user) {
                 token.id = user.id;
                 token.role = user.role;
+                token.email = user.email;
+                token.name = user.name;
             }
             return token;
         },
         async session({ session, token }: { session: any; token: any }) {
-            if (session.user) {
-                session.user.id = token.id;
-                session.user.role = token.role;
-            }
+            // Always ensure the user object exists with all required fields
+            session.user = {
+                id: token.id,
+                email: token.email || session.user?.email,
+                name: token.name || session.user?.name,
+                role: token.role,
+            };
             return session;
         },
     },
