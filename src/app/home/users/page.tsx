@@ -18,6 +18,8 @@ import * as UserService from "@/lib/services/UserService"
 import * as RoleService from "@/lib/services/RoleService"
 import { IRole, IUser } from "@/lib"
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog"
+import { useTheme } from "next-themes"
+import Loading from "./loading"
 
 export default function UsersPage() {
   const [users, setUsers] = useState<IUser[]>([])
@@ -182,8 +184,8 @@ export default function UsersPage() {
                     {(t as Record<string, string>)[user.status?.toLowerCase()] ?? user.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-slate-600">{new Date(user.updatedAt as number).toISOString().slice(0, 10)}</TableCell>
-                <TableCell className="text-slate-600">{new Date(user.createdAt as number).toISOString().slice(0, 10)}</TableCell>
+                <TableCell className="text-slate-600">{new Date(user.updatedAt as string).toISOString().slice(0, 10)}</TableCell>
+                <TableCell className="text-slate-600">{new Date(user.createdAt as string).toISOString().slice(0, 10)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Dialog open={!!editingUser} onOpenChange={(open) => { if (!open) setEditingUser(null) }}>
@@ -317,7 +319,7 @@ function UserForm({ user, onClose, fetchUsers, t, roles }: UserFormProps) {
           last_name: name.split(" ")[1],
           email,
           password,
-          role_id: roles.find((r) => r.name === role)?._id || "",
+          role_id: roles.find((r) => r.name === role)?._id || ""
         }).then(() => {
           toast({
             title: t.userCreated ?? "User created",
@@ -415,6 +417,7 @@ function PermissionMatrix({ onClose, t, roles }: PermissionMatrixProps) {
   const [saving, setSaving] = useState(false)
   const [matrix, setMatrix] = useState<Record<string, Record<string, boolean>>>({})
   const { toast } = useToast()
+  const { theme } = useTheme()
 
   useEffect(() => {
     if (!roleId && roles.length > 0) setRoleId(roles[0]._id as string)
@@ -481,6 +484,10 @@ function PermissionMatrix({ onClose, t, roles }: PermissionMatrixProps) {
     } else {
       toast({ title: t.error ?? "Error", description: t.saveFailed ?? "Failed to save permissions.", variant: "destructive" })
     }
+  }
+
+  if (loading) {
+    return <Loading theme={theme ?? "dark"} />
   }
 
   return (

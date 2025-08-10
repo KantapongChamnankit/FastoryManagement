@@ -86,8 +86,6 @@ export function UserProfile() {
         return `${user.first_name || ""} ${user.last_name || ""}`.trim()
     }, [user?.first_name, user?.last_name])
 
-    console.log(user, "user data")
-
     return (
         user && role ? (
             <div className="space-y-3">

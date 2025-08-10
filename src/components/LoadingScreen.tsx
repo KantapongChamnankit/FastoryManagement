@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
+import { useTheme } from "next-themes"
 
 interface LoadingScreenProps {
   onLoadingComplete: () => void
@@ -9,6 +10,7 @@ interface LoadingScreenProps {
 
 export function LoadingScreen({ onLoadingComplete }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0)
+  const { theme } = useTheme()
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -30,17 +32,31 @@ export function LoadingScreen({ onLoadingComplete }: LoadingScreenProps) {
       <div className="text-center space-y-8">
         {/* Logo with opacity animation */}
         <div className="relative">
-          <Image
-            src="/logo.png"
-            alt="Company Logo"
-            width={120}
-            height={120}
-            className="mx-auto"
-            style={{
-              opacity: (Math.sin((progress / 100) * Math.PI * 2) + 1) / 2,
-              transition: "opacity 0.1s ease-in-out",
-            }}
-          />
+          {theme === "dark" ? (
+            <Image
+              src="/logo_dark.png"
+              alt="Company Logo"
+              width={120}
+              height={120}
+              className="mx-auto"
+              style={{
+                opacity: (Math.sin((progress / 100) * Math.PI * 2) + 1) / 2,
+                transition: "opacity 0.1s ease-in-out",
+              }}
+            />
+          ) : (
+            <Image
+              src="/logo_light.png"
+              alt="Company Logo"
+              width={120}
+              height={120}
+              className="mx-auto"
+              style={{
+                opacity: (Math.sin((progress / 100) * Math.PI * 2) + 1) / 2,
+                transition: "opacity 0.1s ease-in-out",
+              }}
+            />
+          )}
         </div>
 
         {/* Loading text and progress */}

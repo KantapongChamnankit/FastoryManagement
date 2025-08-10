@@ -40,8 +40,7 @@ export async function list() {
 
 export async function updateUser(id: string, data: Partial<IUser>) {
   await DBConnect()
-  const user = await
-  User.findById(id);
+  const user = await User.findById(id);
   if (!user) throw new Error("User not found");
   Object.assign(user, data);
   return autoSerialize(await user.save()) as IUser;

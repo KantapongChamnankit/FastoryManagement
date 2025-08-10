@@ -20,6 +20,9 @@ import * as UserService from "@/lib/services/UserService"
 import { IStockLocation, IUser } from "@/lib"
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog"
 import { useSession } from "next-auth/react"
+import { set } from "mongoose"
+import Loading from "./loading"
+import { useTheme } from "next-themes"
 
 export default function LocksPage() {
   const [locks, setLocks] = useState<(IStockLocation & { currentStock: number })[]>([])
@@ -28,9 +31,11 @@ export default function LocksPage() {
   const [editingLockId, setEditingLockId] = useState<string | null>(null)
   const [deleteLockId, setDeleteLockId] = useState<string | null>(null)
   const { toast } = useToast()
+  const [loading, setLoading] = useState(true)
   const { lang } = useLanguage()
   const [user, setUser] = useState<IUser | null>(null)
   const { data: session, status } = useSession()
+  const { theme } = useTheme()
   const t = translations[lang]
 
   // Fetch locks from API
@@ -64,6 +69,7 @@ export default function LocksPage() {
               return { ...lock, currentStock }
             })
             setLocks(locksWithStock)
+            setLoading(false)
           })
       })
   }
@@ -129,6 +135,10 @@ export default function LocksPage() {
 
   const getUtilizationPercentage = (current: number, capacity: number) => {
     return Math.round((current / capacity) * 100)
+  }
+
+  if (loading) {
+    return <Loading theme={theme ?? "dark"} />
   }
 
   return (
@@ -207,127 +217,138 @@ export default function LocksPage() {
 
       {/* Locks Table */}
       <Card className="border border-slate-200 shadow-sm">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-b border-slate-200">
-              <TableHead className="font-semibold text-slate-700">{t.lockName ?? "Lock Name"}</TableHead>
-              <TableHead className="font-semibold text-slate-700">{t.location ?? "Location"}</TableHead>
-              <TableHead className="font-semibold text-slate-700">{t.capacity ?? "Capacity"}</TableHead>
-              <TableHead className="font-semibold text-slate-700">{t.utilization ?? "Utilization"}</TableHead>
-              <TableHead className="font-semibold text-slate-700">{t.status ?? "Status"}</TableHead>
-              <TableHead className="font-semibold text-slate-700">{t.actions ?? "Actions"}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredLocks.map((lock) => {
-              const utilization = getUtilizationPercentage(lock.currentStock, lock.capacity)
-              return (
-                <TableRow key={lock._id} className="border-b border-slate-100 hover:bg-slate-50">
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center bg-blue-100 text-blue-600">
-                        <Lock className="h-4 w-4" />
+        {filteredLocks.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <Lock className="h-10 w-10 text-slate-400 mb-4" />
+            <span className="text-slate-500 mb-4">{(t as any).notHaveCategory || "No locks found. You can create one!"}</span>
+            <Button onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              {t.addNewLock || "Add Storage Lock"}
+            </Button>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="border-b border-slate-200">
+                <TableHead className="font-semibold text-slate-700">{t.lockName ?? "Lock Name"}</TableHead>
+                <TableHead className="font-semibold text-slate-700">{t.location ?? "Location"}</TableHead>
+                <TableHead className="font-semibold text-slate-700">{t.capacity ?? "Capacity"}</TableHead>
+                <TableHead className="font-semibold text-slate-700">{t.utilization ?? "Utilization"}</TableHead>
+                <TableHead className="font-semibold text-slate-700">{t.status ?? "Status"}</TableHead>
+                <TableHead className="font-semibold text-slate-700">{t.actions ?? "Actions"}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredLocks.map((lock) => {
+                const utilization = getUtilizationPercentage(lock.currentStock, lock.capacity)
+                return (
+                  <TableRow key={lock._id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center bg-blue-100 text-blue-600">
+                          <Lock className="h-4 w-4" />
+                        </div>
+                        <span className="font-medium text-slate-900">{lock.name}</span>
                       </div>
-                      <span className="font-medium text-slate-900">{lock.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-slate-600">{lock.position ?? " "}</TableCell>
-                  <TableCell className="text-slate-600">
-                    {lock.currentStock} / {lock.capacity}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 bg-slate-200 h-2">
-                        <div
-                          className={`h-2 ${utilization >= 90 ? "bg-red-500" : utilization >= 70 ? "bg-yellow-500" : "bg-green-500"
-                            }`}
-                          style={{ width: `${utilization}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-slate-600">{utilization}%</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {(() => {
-                      let status = "Active"
-                      if (lock.currentStock >= lock.capacity) {
-                        status = "Full"
-                      } else if (lock.currentStock >= lock.capacity * 0.9) {
-                        status = "Nearly Full"
-                      }
-                      return (
-                        <Badge className={getStatusColor(status)}>
-                          {status}
-                        </Badge>
-                      )
-                    })()}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Dialog open={editingLockId === lock._id} onOpenChange={(open) => setEditingLockId(open ? lock._id as string : null)}>
-                        <DialogTrigger asChild>
-                          <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => setEditingLockId(lock._id as string)}>
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>{t.editLock ?? "Edit Storage Lock"}</DialogTitle>
-                          </DialogHeader>
-                          <LockForm
-                            lock={lock}
-                            fetchLocks={fetchLocks}
-                            onClose={() => setEditingLockId(null)}
-                            t={t}
+                    </TableCell>
+                    <TableCell className="text-slate-600">{lock.position ?? " "}</TableCell>
+                    <TableCell className="text-slate-600">
+                      {lock.currentStock} / {lock.capacity}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 bg-slate-200 h-2">
+                          <div
+                            className={`h-2 ${utilization >= 90 ? "bg-red-500" : utilization >= 70 ? "bg-yellow-500" : "bg-green-500"
+                              }`}
+                            style={{ width: `${utilization}%` }}
                           />
-                        </DialogContent>
-                      </Dialog>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                            onClick={() => setDeleteLockId(lock._id as string)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>
-                              {"Are you sure you want to delete this storage lock?"}
-                            </AlertDialogTitle>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel onClick={() => setDeleteLockId(null)}>
-                              {t.cancel ?? "Cancel"}
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={async () => {
-                                ProductService.list({ stock_location_id: lock._id as string }).then(products => {
-                                  if (products.length > 0) {
-                                    products.forEach(product => {
-                                      ProductService.remove(product._id as string, user as IUser)
-                                    })
-                                  }
-                                })
-                                await handleDelete(lock._id as string)
-                                setDeleteLockId(null)
-                              }}
+                        </div>
+                        <span className="text-sm text-slate-600">{utilization}%</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {(() => {
+                        let status = "Active"
+                        if (lock.currentStock >= lock.capacity) {
+                          status = "Full"
+                        } else if (lock.currentStock >= lock.capacity * 0.9) {
+                          status = "Nearly Full"
+                        }
+                        return (
+                          <Badge className={getStatusColor(status)}>
+                            {status}
+                          </Badge>
+                        )
+                      })()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Dialog open={editingLockId === lock._id} onOpenChange={(open) => setEditingLockId(open ? lock._id as string : null)}>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => setEditingLockId(lock._id as string)}>
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>{t.editLock ?? "Edit Storage Lock"}</DialogTitle>
+                            </DialogHeader>
+                            <LockForm
+                              lock={lock}
+                              fetchLocks={fetchLocks}
+                              onClose={() => setEditingLockId(null)}
+                              t={t}
+                            />
+                          </DialogContent>
+                        </Dialog>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                              onClick={() => setDeleteLockId(lock._id as string)}
                             >
-                              {t.delete ?? "Delete"}
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {"Are you sure you want to delete this storage lock?"}
+                              </AlertDialogTitle>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel onClick={() => setDeleteLockId(null)}>
+                                {t.cancel ?? "Cancel"}
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={async () => {
+                                  ProductService.list({ stock_location_id: lock._id as string }).then(products => {
+                                    if (products.length > 0) {
+                                      products.forEach(product => {
+                                        ProductService.remove(product._id as string, user as IUser)
+                                      })
+                                    }
+                                  })
+                                  await handleDelete(lock._id as string)
+                                  setDeleteLockId(null)
+                                }}
+                              >
+                                {t.delete ?? "Delete"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        )}
       </Card>
     </div>
   )

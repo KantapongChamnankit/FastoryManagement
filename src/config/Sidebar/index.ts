@@ -1,4 +1,4 @@
-import { FileText, Home, Lock, Package, ShoppingCart, Tags, Users } from "lucide-react";
+import { FileText, Home, Lock, Package, Settings, ShoppingCart, Tags, Users } from "lucide-react";
 
 export const SidebarConfig = [
   {
@@ -48,6 +48,16 @@ export const SidebarConfig = [
         title: "reports",
         url: "/home/reports",
         icon: FileText,
+      },
+    ],
+  },
+  {
+    label: "settings",
+    items: [
+      {
+        title: "settings",
+        url: "/home/settings",
+        icon: Settings,
       },
     ],
   },

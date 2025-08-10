@@ -24,9 +24,11 @@ import { ThemeToggle } from "./ToggleTheme"
 import { useSession } from "next-auth/react"
 import { useEffect } from "react"
 import { useRouter } from "next/router"
+import { useTheme } from "next-themes"
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const { theme } = useTheme()
   const { lang, setLang } = useLanguage()
   const t = translations[lang]
 
@@ -34,7 +36,11 @@ export function AppSidebar() {
     <Sidebar className="border-r border-slate-200 bg-white dark:bg-[#121212] dark:border-[#333333]">
       <SidebarHeader className="border-b border-slate-200 dark:border-[#333333] p-6">
         <div className="flex items-center gap-3">
-          <Image src="/logo.png" alt="Company Logo" width={40} height={40} className="object-contain" />
+          {theme === "dark" ? (
+            <Image src="/logo_dark.png" alt="Company Logo" width={40} height={40} className="object-contain" />
+          ) : (
+            <Image src="/logo_light.png" alt="Company Logo" width={40} height={40} className="object-contain" />
+          )}
           <div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Fastory</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">Management System</p>

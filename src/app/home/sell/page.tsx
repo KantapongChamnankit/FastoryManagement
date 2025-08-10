@@ -412,42 +412,50 @@ export default function SellPage() {
         <CardContent>
           <Table>
             <TableHeader>
-              <TableRow className="border-b border-slate-200">
-                <TableHead className="font-semibold text-slate-700">{t.product}</TableHead>
-                <TableHead className="font-semibold text-slate-700">{t.quantity}</TableHead>
-                <TableHead className="font-semibold text-slate-700">{t.unitPrice}</TableHead>
-                <TableHead className="font-semibold text-slate-700">{t.profit}</TableHead>
-                <TableHead className="font-semibold text-slate-700">{t.time || "Time"}</TableHead>
-              </TableRow>
+                <TableRow className="border-b border-slate-200 text-center">
+                <TableHead className="font-semibold text-slate-700 text-center">{t.product}</TableHead>
+                <TableHead className="font-semibold text-slate-700 text-center">{t.quantity}</TableHead>
+                <TableHead className="font-semibold text-slate-700 text-center">{t.unitPrice}</TableHead>
+                <TableHead className="font-semibold text-slate-700 text-center">{t.profit}</TableHead>
+                <TableHead className="font-semibold text-slate-700 text-center">{t.time || "Time"}</TableHead>
+                </TableRow>
             </TableHeader>
             <TableBody>
               {sales
                 .filter((x, i) => i < 10)
                 .sort((a, b) => (b.created_at ?? 0) - (a.created_at ?? 0))
                 .map((sale) => (
-                <TableRow key={sale._id || sale._id} className="border-b border-slate-100 hover:bg-slate-50">
-                  <TableCell className="font-medium text-slate-900">
-                    {products.find((x) => x._id === sale.products[0].product_id)?.name}
-                  </TableCell>
-                  <TableCell className="text-slate-600">{sale.products[0].quantity}</TableCell>
-                  <TableCell className="text-slate-600">${sale.total_price?.toFixed(2) ?? ""}</TableCell>
-                  <TableCell className="text-green-600 font-medium">${sale.profit?.toFixed(2) ?? ""}</TableCell>
-                  <TableCell className="text-slate-500 text-sm">
-                    {sale.created_at
-                      ? new Date(sale.created_at as number)
-                        .toLocaleString("th-TH", {
-                          year: "numeric",
-                          month: "2-digit",
-                          day: "2-digit",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          hour12: false,
-                        })
-                        .replace(/(\d+)\/(\d+)\/(\d+),\s?(\d+):(\d+)/, "$3/$2/$1 $4:$5")
-                      : ""}
-                  </TableCell>
-                </TableRow>
-              ))}
+                  <TableRow key={sale._id || sale._id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <TableCell className="font-medium text-slate-900 text-center">
+                      {products.find((x) => x._id === sale.products[0].product_id)?.name ? (
+                        <span>{products.find((x) => x._id === sale.products[0].product_id)?.name}</span>
+                      ) : (
+                        <span className="flex justify-center items-center">
+                          <div className="bg-slate-50 animate-pulse">
+                          <div className="h-4 w-28 bg-slate-200 rounded"></div>
+                          </div>
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-slate-600 text-center">{sale.products[0].quantity}</TableCell>
+                    <TableCell className="text-slate-600 text-center">${sale.total_price?.toFixed(2) ?? ""}</TableCell>
+                    <TableCell className="text-green-600 font-medium text-center">${sale.profit?.toFixed(2) ?? ""}</TableCell>
+                    <TableCell className="text-slate-500 text-sm text-center">
+                      {sale.created_at
+                        ? new Date(sale.created_at as number)
+                          .toLocaleString("th-TH", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })
+                          .replace(/(\d+)\/(\d+)\/(\d+),\s?(\d+):(\d+)/, "$3/$2/$1 $4:$5")
+                        : ""}
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </CardContent>

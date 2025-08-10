@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { DBConnect } from '@/lib/utils/DBConnect';
 import { User } from '@/lib/models/user';
 import bcrypt from 'bcryptjs';
+import * as UserService from "@/lib/services/UserService";
 import { JWT } from 'next-auth/jwt';
 
 export const authOptions: AuthOptions = {
@@ -24,6 +25,10 @@ export const authOptions: AuthOptions = {
                 if (!user || user.status !== 'active') throw new Error('No user or inactive');
                 const isValid = await bcrypt.compare(credentials.password, user.password_hash);
                 if (!isValid) throw new Error('Invalid password');
+
+                //make to string like this 2025-08-09T16:06:56.624Z
+                console.log(user.updatedAt, new Date().toISOString());
+                await UserService.updateUser(user._id.toString(), { updatedAt: new Date().toISOString() });
 
                 return {
                     id: user._id.toString(),

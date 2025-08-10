@@ -24,7 +24,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={kanit.className}>
-        <ServerSession refetchInterval={5} refetchOnWindowFocus={true} session={session}>
+        <ServerSession session={session}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
             {children}
           </ThemeProvider>

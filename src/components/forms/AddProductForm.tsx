@@ -15,12 +15,12 @@ import * as UserService from "@/lib/services/UserService"
 import { useRouter } from "next/navigation"
 
 interface props {
-    onClose: () => void; 
-    fetchProducts: () => void, 
-    categories: ICategory[], 
-    locks: (IStockLocation & { currentStock: number })[], 
-    barcode: string, 
-    onAdd: (product: any) => void 
+    onClose: () => void;
+    fetchProducts: () => void,
+    categories: ICategory[],
+    locks: (IStockLocation & { currentStock: number })[],
+    barcode: string,
+    onAdd: (product: any) => void
 }
 
 export function AddProductForm({ onClose, fetchProducts, categories, locks, barcode, onAdd }: props) {
@@ -37,6 +37,7 @@ export function AddProductForm({ onClose, fetchProducts, categories, locks, barc
     const { lang } = useLanguage()
     const t = translations[lang]
     const { data: session } = useSession()
+    const router = useRouter()
 
     useEffect(() => {
         async function fetchUser() {
@@ -158,19 +159,35 @@ export function AddProductForm({ onClose, fetchProducts, categories, locks, barc
                     <Select
                         value={selectedCategory}
                         onValueChange={(value) => {
-                            setSelectedCategory(value)
-                            if (categoryInputRef.current) categoryInputRef.current.value = value
+                            if (value === "create-categories") {
+                                router.push("/home/categories");
+                            } else {
+                                setSelectedCategory(value);
+                                if (categoryInputRef.current) categoryInputRef.current.value = value;
+                            }
                         }}
                     >
                         <SelectTrigger>
                             <SelectValue placeholder={t.selectCategory} />
                         </SelectTrigger>
                         <SelectContent>
-                            {categories.map((cat) => (
-                                <SelectItem key={cat._id} value={cat.name}>
-                                    {cat.name}
+                            {categories.length === 0 ? (
+                                <SelectItem
+                                    value="create-categories"
+                                    onClick={() => {
+                                        router.push("/categories");
+                                    }}
+                                    className="text-blue-600 cursor-pointer"
+                                >
+                                    Don't have any categories? Create one
                                 </SelectItem>
-                            ))}
+                            ) : (
+                                categories.map((cat) => (
+                                    <SelectItem key={cat._id} value={cat.name}>
+                                        {cat.name}
+                                    </SelectItem>
+                                ))
+                            )}
                         </SelectContent>
                     </Select>
                     <input ref={categoryInputRef} type="hidden" name="category" value={selectedCategory} />
@@ -180,19 +197,35 @@ export function AddProductForm({ onClose, fetchProducts, categories, locks, barc
                     <Select
                         value={selectedLock}
                         onValueChange={(value) => {
-                            setSelectedLock(value)
-                            if (lockInputRef.current) lockInputRef.current.value = value
+                            if (value === "create-locks") {
+                                router.push("/home/locks");
+                            } else {
+                                setSelectedLock(value);
+                                if (lockInputRef.current) lockInputRef.current.value = value;
+                            }
                         }}
                     >
                         <SelectTrigger>
                             <SelectValue placeholder={t.selectStorageLock} />
                         </SelectTrigger>
                         <SelectContent>
-                            {locks.map((lock) => (
-                                <SelectItem key={lock._id} value={lock.name}>
-                                    {lock.name} (Capacity: {lock.capacity})
+                            {locks.length === 0 ? (
+                                <SelectItem
+                                    value="create-locks"
+                                    onClick={() => {
+                                        router.push("/home/locks");
+                                    }}
+                                    className="text-blue-600 cursor-pointer"
+                                >
+                                    Don't have any storage locks? Create one
                                 </SelectItem>
-                            ))}
+                            ) : (
+                                locks.map((lock) => (
+                                    <SelectItem key={lock._id} value={lock.name}>
+                                        {lock.name} (Capacity: {lock.capacity})
+                                    </SelectItem>
+                                ))
+                            )}
                         </SelectContent>
                     </Select>
                     <input ref={lockInputRef} type="hidden" name="lock" value={selectedLock} />

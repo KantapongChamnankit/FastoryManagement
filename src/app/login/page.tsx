@@ -13,13 +13,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react"
 import AuthService from "../../lib/services/AuthService"
 import { useSession } from "next-auth/react"
+import { useTheme } from "next-themes"
 
 export default function LoginPage() {
     const [isLogin, setIsLogin] = useState(true)
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
-
+    const { theme } = useTheme()
     const { data: session, status } = useSession()
     const router = useRouter()
 
@@ -54,12 +55,18 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4 ">
+        <div className="min-h-screen flex items-center justify-center p-4 ">
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
-                    <div className="flex justify-center mb-4">
-                        <Image src="/logo.png" alt="Company Logo" width={120} height={120} className="object-contain" />
-                    </div>
+                    {theme === "dark" ? (
+                        <div className="flex justify-center mb-4">
+                            <Image src="/logo_dark.png" alt="Company Logo" width={120} height={120} className="object-contain" />
+                        </div>
+                    ) : (
+                        <div className="flex justify-center mb-4">
+                            <Image src="/logo_light.png" alt="Company Logo" width={120} height={120} className="object-contain" />
+                        </div>
+                    )}
                 </div>
 
                 <Card className="border border-slate-200 shadow-lg">

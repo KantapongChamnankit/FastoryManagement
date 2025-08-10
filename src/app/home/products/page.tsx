@@ -33,6 +33,8 @@ import { handleDelete } from "./handle/handleDelete"
 import { signOut, useSession } from "next-auth/react"
 import { useRouter } from "next/router"
 import { BarcodeScannerModal } from "@/components/dialogs/BarcodeDialog"
+import { useTheme } from "next-themes"
+import Loading from "./loading"
 
 
 export default function ProductsPage() {
@@ -59,6 +61,7 @@ export default function ProductsPage() {
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all")
   const [selectedLockFilter, setSelectedLockFilter] = useState<string>("all")
   const [userData, setUserData] = useState<IUser | null>(null)
+  const { theme } = useTheme()
 
   const { data: session, status } = useSession();
 
@@ -206,20 +209,22 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Content */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center min-h-[300px]">
-          <img
-            src="/logo.png"
-            alt="Loading..."
-            className="w-24 h-24 mb-4"
-            style={{
-              opacity: (Math.sin(Date.now() / 500) + 1) / 2,
-              transition: "opacity 0.5s ease-in-out",
-            }}
-          />
-          <span className="text-slate-500 text-lg">{t.loading}</span>
-        </div>
+        <Loading theme={theme ?? "dark"} />
+      ) : filteredProducts.length === 0 ? (
+        <Card className="border border-slate-200 shadow-sm">
+          <>
+            <div className="flex flex-col items-center justify-center py-16">
+              <ShoppingCart className="h-24 w-24 text-slate-400" />
+              <br></br>
+              <p className="text-lg text-slate-500 mb-4">{(t as any)?.noProductsFound || "No products found. Let's create one!"}</p>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsScannerOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                {t.addProduct}
+              </Button>
+            </div>
+          </>
+        </Card>
       ) : viewMode === "table" ? (
         <ProductTable
           filteredProducts={filteredProducts}
