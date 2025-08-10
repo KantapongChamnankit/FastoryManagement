@@ -23,6 +23,12 @@ export default async function RootLayout({
   const session = await getServerSession()
   return (
     <html lang="en">
+      <link rel="manifest" href="/manifest.webmanifest" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+      <meta name="theme-color" content="#000000" />
+      <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+
       <body className={kanit.className}>
         <ServerSession session={session}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>

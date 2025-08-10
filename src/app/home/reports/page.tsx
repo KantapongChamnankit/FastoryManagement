@@ -248,7 +248,7 @@ export default function ReportsPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">{t.reports ?? "Reports & Analytics"}</h1>
           <p className="text-slate-600">{t.trackPerformance ?? "Track performance and generate insights."}</p>

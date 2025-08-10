@@ -1,9 +1,9 @@
 "use client"
 
-import type React from "react"
+import * as React from "react"
 import { useEffect, useState, useCallback } from "react"
 import { formatDistanceToNow } from "date-fns"
-import { SidebarProvider } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
 import { Toaster } from "@/components/ui/toaster"
 import { LoadingScreen } from "@/components/LoadingScreen"
@@ -32,7 +32,7 @@ export default function ClientLayout({
   const pathname = usePathname()
   const [hasShownWelcomeToast, setHasShownWelcomeToast] = useState(false)
   const { data: session, status } = useSession({ required: true })
-  
+
   // Initialize low stock monitoring
   const { checkLowStock } = useLowStockMonitor()
 
@@ -108,38 +108,62 @@ export default function ClientLayout({
       {isLoading ? (
         <LoadingScreen onLoadingComplete={() => setIsLoading(false)} />
       ) : (
-        <SidebarProvider defaultOpen={true}>
+        <SidebarProvider
+          defaultOpen={true}
+          style={{
+            "--sidebar-width": "16rem",
+            "--sidebar-width-icon": "6rem",
+          } as React.CSSProperties}
+        >
           <div className="flex min-h-screen w-full">
             <AppSidebar />
             <div className="flex-1 flex flex-col">
-              <nav className="h-20 flex items-center justify-between px-8 py-2 border-b border-slate-200 bg-white dark:bg-[#121212] dark:border-[#333333] text-lg">
-                {/* Left side - Breadcrumb */}
-                <div className="flex items-center">
-                  <Breadcrumb>
-                    <BreadcrumbList>
-                      <BreadcrumbItem>
-                        Fastory
-                      </BreadcrumbItem>
-                      <BreadcrumbSeparator />
-                      <BreadcrumbEllipsis />
-                      <BreadcrumbSeparator />
-                      {pathname
-                        .split("/")
-                        .filter(Boolean)
-                        .map((segment: string, idx: number, arr: string[]) =>
-                          idx === arr.length - 1 ? (
-                            <BreadcrumbPage key={idx} className="text-slate-900 dark:text-white">
-                              {segment.charAt(0).toUpperCase() + segment.slice(1)}
-                            </BreadcrumbPage>
-                          ) : (
-                            <BreadcrumbItem key={idx}>
-                              <BreadcrumbLink>{segment.charAt(0).toUpperCase() + segment.slice(1)}</BreadcrumbLink>
-                              <BreadcrumbSeparator />
-                            </BreadcrumbItem>
-                          )
-                        )}
-                    </BreadcrumbList>
-                  </Breadcrumb>
+              <nav className="h-16 md:h-20 flex items-center justify-between px-4 md:px-8 py-2 border-b border-slate-200 bg-white dark:bg-[#121212] dark:border-[#333333] text-sm md:text-lg">
+                {/* Left side - Desktop + Mobile menu trigger + Breadcrumb */}
+                <div className="flex items-center space-x-4">
+                  {/* Desktop sidebar trigger */}
+                  <div className="hidden md:block">
+                    <SidebarTrigger className="p-2" />
+                  </div>
+
+                  {/* Mobile menu trigger */}
+                  <div className="md:hidden">
+                    <SidebarTrigger className="p-2" />
+                  </div>
+
+                  {/* Breadcrumb */}
+                  <div className="flex items-center">
+                    <Breadcrumb>
+                      <BreadcrumbList>
+                        <BreadcrumbItem className="">
+                          Fastory
+                        </BreadcrumbItem>
+                        {/* hidden when mobile */}
+                        <BreadcrumbSeparator className="" />
+                        <div className="flex items-center">
+                          <BreadcrumbEllipsis className="hidden md:block py-2 px-1" />
+                          <BreadcrumbSeparator className="hidden md:block" />
+                        </div>
+                        {pathname
+                          .split("/")
+                          .filter(Boolean)
+                          .map((segment: string, idx: number, arr: string[]) =>
+                            idx === arr.length - 1 ? (
+                              <BreadcrumbPage key={idx} className="text-slate-900 dark:text-white text-sm">
+                                {segment.charAt(0).toUpperCase() + segment.slice(1)}
+                              </BreadcrumbPage>
+                            ) : (
+                              <BreadcrumbItem key={idx} className="">
+                                <BreadcrumbLink className="text-sm">
+                                  {segment.charAt(0).toUpperCase() + segment.slice(1)}
+                                </BreadcrumbLink>
+                                <BreadcrumbSeparator />
+                              </BreadcrumbItem>
+                            )
+                          )}
+                      </BreadcrumbList>
+                    </Breadcrumb>
+                  </div>
                 </div>
 
                 {/* Right side - Notifications */}
@@ -257,8 +281,8 @@ export default function ClientLayout({
                                     <div
                                       key={notif._id}
                                       className={`p-4 rounded-lg border transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 ${!notif.read
-                                          ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
-                                          : 'border-slate-200 dark:border-slate-700'
+                                        ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                                        : 'border-slate-200 dark:border-slate-700'
                                         }`}
                                     >
                                       <div className="flex items-start justify-between">
@@ -323,7 +347,7 @@ export default function ClientLayout({
                   </Popover>
                 </div>
               </nav>
-              <main className="flex-1 bg-gray-50 dark:bg-[#050505]">{children}</main>
+              <main className="flex-1 bg-gray-50 dark:bg-[#050505] p-4 md:p-6 lg:p-8 overflow-auto">{children}</main>
             </div>
           </div>
         </SidebarProvider>

@@ -90,7 +90,7 @@ export function UserProfile() {
         user && role ? (
             <div className="space-y-3">
                 {/* User Info */}
-                <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200">
+                <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 group-data-[collapsible=icon]:justify-center">
                     <Image
                         src="https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png"
                         alt="User Avatar"
@@ -98,7 +98,7 @@ export function UserProfile() {
                         height={40}
                         className="object-cover border border-slate-200"
                     />
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
                         <p className="text-sm font-medium text-slate-900 truncate">
                             {fullName}
                         </p>
@@ -117,16 +117,18 @@ export function UserProfile() {
                     onClick={handleSignOut}
                     disabled={loading}
                     variant="outline"
-                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2"
                 >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    {loading ? "Signing out..." : "Sign Out"}
+                    <LogOut className="h-4 w-4 mr-2 group-data-[collapsible=icon]:mr-0" />
+                    <span className="group-data-[collapsible=icon]:hidden">
+                        {loading ? "Signing out..." : "Sign Out"}
+                    </span>
                 </Button>
             </div>
         ) : (
-            <div className="flex items-center gap-3 p-3 bg-slate-50 animate-pulse">
+            <div className="flex items-center gap-3 p-3 bg-slate-50 animate-pulse group-data-[collapsible=icon]:justify-center">
                 <div className="w-10 h-10 bg-slate-200 rounded"></div>
-                <div className="flex-1">
+                <div className="flex-1 group-data-[collapsible=icon]:hidden">
                     <div className="h-4 bg-slate-200 rounded mb-1"></div>
                     <div className="h-3 bg-slate-200 rounded w-2/3"></div>
                 </div>
