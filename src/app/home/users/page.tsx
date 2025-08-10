@@ -298,7 +298,7 @@ function UserForm({ user, onClose, fetchUsers, t, roles }: UserFormProps) {
           last_name: name.split(" ")[1],
           email,
           role_id: roles.find((r) => r.name === role)?._id || user.role_id,
-          status: status.toLowerCase() as "active" | "inactive",
+          status: status.toLowerCase() as "active" | "inactive"
         }).then(() => {
           toast({
             title: t.userUpdated ?? "User updated",
@@ -319,7 +319,8 @@ function UserForm({ user, onClose, fetchUsers, t, roles }: UserFormProps) {
           last_name: name.split(" ")[1],
           email,
           password,
-          role_id: roles.find((r) => r.name === role)?._id || ""
+          role_id: roles.find((r) => r.name === role)?._id || "",
+          image_id: "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png"
         }).then(() => {
           toast({
             title: t.userCreated ?? "User created",

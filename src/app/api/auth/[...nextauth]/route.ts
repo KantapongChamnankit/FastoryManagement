@@ -34,7 +34,7 @@ export const authOptions: AuthOptions = {
                     id: user._id.toString(),
                     name: `${user.first_name} ${user.last_name}`,
                     email: user.email,
-                    role: user.role_id,
+                    role: user.role_id
                 };
             },
         }),
@@ -58,7 +58,7 @@ export const authOptions: AuthOptions = {
                 id: token.id,
                 email: token.email || session.user?.email,
                 name: token.name || session.user?.name,
-                role: token.role,
+                role: token.role
             };
             return session;
         },

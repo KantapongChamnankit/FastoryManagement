@@ -17,7 +17,7 @@ class AuthService {
         const response = await signIn("credentials", {
             redirect: false,
             email: username,
-            password: password,
+            password: password
         })
 
         if (response?.error) {

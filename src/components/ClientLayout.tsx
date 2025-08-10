@@ -1,13 +1,14 @@
 "use client"
 
 import * as React from "react"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
 import { Toaster } from "@/components/ui/toaster"
 import { LoadingScreen } from "@/components/LoadingScreen"
 import { Chatbot } from "@/components/Chatbot"
+import { RouteGuard } from "@/components/RouteGuard"
 import { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "./ui/breadcrumb"
 import { usePathname } from "next/navigation"
 import { Bell, X, CheckCircle2, AlertCircle, Info } from "lucide-react"
@@ -20,101 +21,180 @@ import { INotification } from "@/lib/interface/INofication"
 import * as NotificationService from "@/lib/services/NotificationService"
 import { useSession } from "next-auth/react"
 import { useLowStockMonitor } from "@/hooks/useLowStockMonitor"
+import { usePermissions } from "@/hooks/usePermissions"
 
-export default function ClientLayout({
+// Memoized notification icon component
+const NotificationIcon = React.memo(({ type }: { type: string }) => {
+  switch (type) {
+    case 'success':
+      return <CheckCircle2 className="h-4 w-4 text-green-500" />
+    case 'error':
+      return <X className="h-4 w-4 text-red-500" />
+    case 'warning':
+      return <AlertCircle className="h-4 w-4 text-orange-500" />
+    default:
+      return <Info className="h-4 w-4 text-blue-500" />
+  }
+})
+NotificationIcon.displayName = "NotificationIcon"
+
+// Memoized breadcrumb component
+const DynamicBreadcrumb = React.memo(({ pathname }: { pathname: string }) => {
+  const breadcrumbItems = useMemo(() => {
+    return pathname
+      .split("/")
+      .filter(Boolean)
+      .map((segment, idx, arr) => ({
+        segment: segment.charAt(0).toUpperCase() + segment.slice(1),
+        isLast: idx === arr.length - 1
+      }))
+  }, [pathname])
+
+  return (
+    <Breadcrumb>
+      <BreadcrumbList>
+        <BreadcrumbItem className="hidden sm:block">
+          Fastory
+        </BreadcrumbItem>
+        <BreadcrumbSeparator className="hidden sm:block" />
+        <BreadcrumbEllipsis className="hidden sm:block" />
+        <BreadcrumbSeparator className="hidden sm:block" />
+        {breadcrumbItems.map((item, idx) =>
+          item.isLast ? (
+            <BreadcrumbPage key={idx} className="text-slate-900 dark:text-white text-sm md:text-base">
+              {item.segment}
+            </BreadcrumbPage>
+          ) : (
+            <BreadcrumbItem key={idx} className="hidden md:block">
+              <BreadcrumbLink className="text-sm">
+                {item.segment}
+              </BreadcrumbLink>
+              <BreadcrumbSeparator />
+            </BreadcrumbItem>
+          )
+        )}
+      </BreadcrumbList>
+    </Breadcrumb>
+  )
+})
+DynamicBreadcrumb.displayName = "DynamicBreadcrumb"
+
+const ClientLayout = React.memo(function ClientLayout({
   children,
 }: {
   children: React.ReactNode
-}) {
+}): JSX.Element {
   const [isLoading, setIsLoading] = useState(true)
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false)
   const [notification, setNotification] = useState<INotification[]>([])
-  const pathname = usePathname()
   const [hasShownWelcomeToast, setHasShownWelcomeToast] = useState(false)
+  const pathname = usePathname()
   const { data: session, status } = useSession({ required: true })
+  const { isAdmin, isStaff, checkRouteAccess } = usePermissions()
 
-  // Initialize low stock monitoring
+  // Initialize low stock monitoring with debouncing
   const { checkLowStock } = useLowStockMonitor()
 
+  // Optimized notification fetching with caching
   const fetchNotifications = useCallback(async () => {
-    if (status === "authenticated" && (session?.user as any)?.id) {
-      try {
-        const notifications = await NotificationService.getNotificationsByUserId((session?.user as any)?.id);
-        setNotification(notifications);
-      } catch (error) {
-        console.error("Failed to fetch notifications:", error);
-      }
+    if (status !== "authenticated" || !(session?.user as any)?.id) {
+      return
     }
-  }, [session, status]);
-
-  useEffect(() => {
-    if (status === "authenticated" && (session?.user as any)?.id && !hasShownWelcomeToast) {
-      console.log("User authenticated:", session?.user)
-      NotificationService.createNotification({
-        userId: (session?.user as any)?.id,
-        title: "You are logged in",
-        message: `Welcome back! You are logged in at ${new Date().toLocaleString()}`,
-        type: "success"
-      }).then((data) => {
-        console.log(data, "Notification added")
-        setHasShownWelcomeToast(true)
-        fetchNotifications();
-      });
+    
+    try {
+      const notifications = await NotificationService.getNotificationsByUserId((session?.user as any)?.id);
+      setNotification(notifications);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
     }
-  }, [status])
+  }, [session?.user, status]);
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'success':
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />
-      case 'error':
-        return <X className="h-4 w-4 text-red-500" />
-      case 'warning':
-        return <AlertCircle className="h-4 w-4 text-orange-500" />
-      default:
-        return <Info className="h-4 w-4 text-blue-500" />
-    }
-  }
-
-  const markAsRead = (id: string) => {
+  // Memoized notification handlers
+  const markAsRead = useCallback((id: string) => {
     setNotification(prev => prev.map(notif =>
       notif._id === id ? { ...notif, read: true } : notif
     ))
-    NotificationService.markNotificationAsRead(id).catch(err => {
+    // Async operation without blocking UI
+    NotificationService.markNotificationAsRead(id).catch((err: any) => {
       console.error("Failed to mark notification as read:", err)
     })
-  }
+  }, [])
 
-  const markAllAsRead = () => {
+  const markAllAsRead = useCallback(() => {
     setNotification(prev => prev.map(notif => ({ ...notif, read: true })))
-    notification.forEach(notif => {
-      NotificationService.markNotificationAsRead(notif._id as string).catch(err => {
-        console.error("Failed to mark notification as read:", err)
-      })
+    // Batch async operations
+    Promise.all(
+      notification.map(notif => 
+        NotificationService.markNotificationAsRead(notif._id as string)
+      )
+    ).catch((err: any) => {
+      console.error("Failed to mark notifications as read:", err)
     })
-  }
+  }, [notification])
 
-  const removeNotification = (id: string) => {
+  const removeNotification = useCallback((id: string) => {
     setNotification(prev => prev.filter(notif => notif._id !== id))
-    NotificationService.removeNotification(id).catch(err => {
+    NotificationService.removeNotification(id).catch((err: any) => {
       console.error("Failed to remove notification:", err)
     })
-  }
+  }, [])
 
-  const unreadCount = notification.filter(n => !n.read).length
+  // Optimized welcome toast effect
+  useEffect(() => {
+    if (status === "authenticated" && 
+        (session?.user as any)?.id && 
+        !hasShownWelcomeToast) {
+      
+      // Debounce welcome notification
+      const timeoutId = setTimeout(async () => {
+        try {
+          await NotificationService.createNotification({
+            userId: (session?.user as any)?.id,
+            title: "You are logged in",
+            message: `Welcome back! You are logged in at ${new Date().toLocaleString()}`,
+            type: "success"
+          });
+          setHasShownWelcomeToast(true)
+          fetchNotifications();
+        } catch (error) {
+          console.error("Failed to create welcome notification:", error)
+        }
+      }, 1000) // 1 second delay
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [status, session?.user, hasShownWelcomeToast, fetchNotifications])
+
+  // Periodic notification refresh with longer intervals
+  useEffect(() => {
+    if (status === "authenticated") {
+      fetchNotifications()
+      
+      // Reduced frequency: check every 60 seconds instead of every 30
+      const interval = setInterval(fetchNotifications, 60000)
+      return () => clearInterval(interval)
+    }
+  }, [status, fetchNotifications])
+
+  // Memoized unread count
+  const unreadCount = useMemo(() => 
+    notification.filter((n: INotification) => !n.read).length, 
+    [notification]
+  )
 
   return (
     <>
       {isLoading ? (
         <LoadingScreen onLoadingComplete={() => setIsLoading(false)} />
       ) : (
-        <SidebarProvider
-          defaultOpen={true}
-          style={{
-            "--sidebar-width": "16rem",
-            "--sidebar-width-icon": "6rem",
-          } as React.CSSProperties}
-        >
+        <RouteGuard>
+          <SidebarProvider
+            defaultOpen={true}
+            style={{
+              "--sidebar-width": "16rem",
+              "--sidebar-width-icon": "6rem",
+            } as React.CSSProperties}
+          >
           <div className="flex min-h-screen w-full">
             <AppSidebar />
             <div className="flex-1 flex flex-col">
@@ -210,7 +290,7 @@ export default function ClientLayout({
                                   <div className="flex items-start justify-between">
                                     <div className="flex items-start space-x-3 flex-1">
                                       <div className="mt-1">
-                                        {getNotificationIcon(notif.type)}
+                                        <NotificationIcon type={notif.type} />
                                       </div>
                                       <div className="flex-1 min-w-0">
                                         <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
@@ -288,7 +368,7 @@ export default function ClientLayout({
                                       <div className="flex items-start justify-between">
                                         <div className="flex items-start space-x-3 flex-1">
                                           <div className="mt-1">
-                                            {getNotificationIcon(notif.type)}
+                                            <NotificationIcon type={notif.type} />
                                           </div>
                                           <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
@@ -351,9 +431,12 @@ export default function ClientLayout({
             </div>
           </div>
         </SidebarProvider>
+        </RouteGuard>
       )}
       <Toaster />
       <Chatbot />
     </>
   )
-}
+})
+
+export default ClientLayout

@@ -10,7 +10,8 @@ export async function createUser(data: {
   last_name: string,
   email: string,
   password: string,
-  role_id: string
+  role_id: string,
+  image_id?: string
 }) {
   await DBConnect()
   const password_hash = await bcrypt.hash(data.password, 10);
@@ -54,3 +55,5 @@ export async function removeUser(id: string) {
   }
   return { success: true, message: "User deleted successfully" };
 }
+
+

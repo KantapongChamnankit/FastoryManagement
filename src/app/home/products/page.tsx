@@ -13,6 +13,9 @@ import { Plus, Search, Grid3X3, List, Edit, Trash2, ShoppingCart, Package, Camer
 import { useToast } from "@/hooks/use-toast"
 import { useLanguage } from "@/contexts"
 import { translations } from "@/lib/utils/Language"
+import { usePermissions } from "@/hooks/usePermissions"
+import { PermissionGate } from "@/components/PermissionGate"
+import { PERMISSIONS } from "@/lib/permissions"
 
 import * as CetegoryService from "@/lib/services/CategoryService"
 import * as StockLocationService from "@/lib/services/StockLocationService"
@@ -62,6 +65,7 @@ export default function ProductsPage() {
   const [selectedLockFilter, setSelectedLockFilter] = useState<string>("all")
   const [userData, setUserData] = useState<IUser | null>(null)
   const { theme } = useTheme()
+  const { isAdmin, isStaff } = usePermissions()
 
   const { data: session, status } = useSession();
 
@@ -119,6 +123,7 @@ export default function ProductsPage() {
   )
 
   const { lang } = useLanguage()
+  const { checkPermission } = usePermissions()
   const t = translations[lang]
 
   return (
@@ -137,10 +142,25 @@ export default function ProductsPage() {
           categories={categories}
           locks={locks}
         /> */}
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsScannerOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t.addProduct}
-        </Button>
+        {isAdmin() ? (
+          <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE}>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsScannerOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t.addProduct}
+            </Button>
+          </PermissionGate>
+        ) : (
+          <PermissionGate permission={PERMISSIONS.PRODUCTS_UPDATE_STOCK}>
+            <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE} fallback={
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsScannerOpen(true)}>
+                <Package className="h-4 w-4 mr-2" />
+                {(t as any).addStock || "Add Stock"}
+              </Button>
+            }>
+              <></>
+            </PermissionGate>
+          </PermissionGate>
+        )}
       </div>
 
       {/* Controls */}
@@ -218,10 +238,22 @@ export default function ProductsPage() {
               <ShoppingCart className="h-24 w-24 text-slate-400" />
               <br></br>
               <p className="text-lg text-slate-500 mb-4">{(t as any)?.noProductsFound || "No products found. Let's create one!"}</p>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsScannerOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                {t.addProduct}
-              </Button>
+              <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE}>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white text-white" onClick={() => setIsScannerOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t.addProduct}
+                </Button>
+              </PermissionGate>
+              <PermissionGate permission={PERMISSIONS.PRODUCTS_UPDATE_STOCK}>
+                <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE} fallback={
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white text-white" onClick={() => setIsScannerOpen(true)}>
+                    <Package className="h-4 w-4 mr-2" />
+                    {(t as any).addStock || "Add Stock"}
+                  </Button>
+                }>
+                  <></>
+                </PermissionGate>
+              </PermissionGate>
             </div>
           </>
         </Card>

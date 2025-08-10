@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import Image from "next/image"
-import { LogOut } from "lucide-react"
+import { LogOut, User } from "lucide-react"
 import { IRole, IUser } from "@/lib"
 import { signOut, useSession } from "next-auth/react"
 import * as UserService from "@/lib/services/UserService"
@@ -28,8 +28,8 @@ export function UserProfile() {
     const [role, setRole] = useState<IRole[] | null>(null)
     const [loading, setLoading] = useState(false)
     const router = useRouter()
-    const { data: session, status } = useSession({ required: true })
-    
+    let { data: session, status, update } = useSession({ required: true })
+
     const extendedSession = session as ExtendedSession
 
     useEffect(() => {
@@ -41,26 +41,55 @@ export function UserProfile() {
             }
 
             const userId = extendedSession.user.id
-            console.log("Fetching user with ID:", userId)
 
             try {
-                // Fetch both user and roles in parallel for better performance
-                const [userData, roleData] = await Promise.all([
-                    UserService.findById(userId),
-                    RoleService.list()
-                ])
-
-                setUser(userData || null)
-                setRole(roleData || null)
+                console.log(userId)
+                await new Promise((resolve) => {
+                    UserService.findById(userId).then((userData) => {
+                        if (!userData) {
+                            console.log("User not found")
+                            setUser(null)
+                            return
+                        }
+                        setUser(userData || null)
+                        RoleService.list().then((roleData) => {
+                            setRole(roleData || null)
+                            resolve(null)
+                        })
+                    })
+                })
+                return
             } catch (error) {
                 console.error("Failed to fetch user data:", error)
                 setUser(null)
                 setRole(null)
+                return;
             }
         }
 
-        fetchUserAndRoles()
+        fetchUserAndRoles().then((res) => {
+            console.log(user, role)
+        })
     }, [status, extendedSession?.user?.id])
+
+    // Listen for profile updates
+    useEffect(() => {
+        const handleProfileUpdate = () => {
+            // Refetch user data when profile is updated
+            if (extendedSession?.user?.id) {
+                UserService.findById(extendedSession.user.id).then((userData) => {
+                    if (userData) {
+                        setUser(userData);
+                    }
+                });
+            }
+        };
+
+        window.addEventListener('profile-updated', handleProfileUpdate);
+        return () => {
+            window.removeEventListener('profile-updated', handleProfileUpdate);
+        };
+    }, [extendedSession?.user?.id]);
 
     const handleSignOut = useCallback(async () => {
         try {
@@ -92,7 +121,7 @@ export function UserProfile() {
                 {/* User Info */}
                 <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 group-data-[collapsible=icon]:justify-center">
                     <Image
-                        src="https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png"
+                        src={user.image_id || 'https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png'}
                         alt="User Avatar"
                         width={40}
                         height={40}

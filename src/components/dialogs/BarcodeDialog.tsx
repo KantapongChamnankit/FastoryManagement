@@ -14,6 +14,7 @@ import * as ProductService from "@/lib/services/ProductService"
 import * as CategoryService from "@/lib/services/CategoryService"
 import * as StockLocationService from "@/lib/services/StockLocationService"
 import { ICategory, IProduct, IStockLocation } from "@/lib"
+import { usePermissions } from "@/hooks/usePermissions"
 
 interface Product {
     _id?: string
@@ -47,6 +48,7 @@ export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchPro
     const [categories, setCategories] = useState<ICategory[]>([])
     const [locks, setLocks] = useState<(IStockLocation & { currentStock: number })[]>([])
     const { toast } = useToast()
+    const { isAdmin, isStaff } = usePermissions()
 
     useEffect(() => {
         if (barcode.trim() && barcode.length >= 8) {
@@ -84,7 +86,15 @@ export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchPro
                     }
                     setBarcode("")
                 } else {
-                    setNewProduct({ barcode })
+                    if (isAdmin()) {
+                        setNewProduct({ barcode })
+                    } else {
+                        toast({
+                            title: "Product Not Found",
+                            description: "Please check the barcode.",
+                            variant: "destructive",
+                        })
+                    }
                     setBarcode("")
                 }
             })

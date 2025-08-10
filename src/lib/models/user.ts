@@ -6,7 +6,13 @@ export const UserSchema = new Schema({
     email: { type: String, required: true, unique: true },
     password_hash: { type: String, required: true },
     role_id: { type: Schema.Types.ObjectId, ref: "Role", required: true },
-    status: { type: String, enum: ["active", "inactive"], default: "active" }
+    status: { type: String, enum: ["active", "inactive"], default: "active" },
+    image_id: { type: String, required: false, default: null }
 }, { timestamps: true });
 
-export const User = mongoose.models?.User || mongoose.model('User', UserSchema);
+// Clear the cached model to ensure schema changes take effect
+if (mongoose.models?.User) {
+    delete mongoose.models.User;
+}
+
+export const User = mongoose.model('User', UserSchema);

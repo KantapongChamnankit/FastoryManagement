@@ -27,23 +27,57 @@ import { UserProfile } from "./UserProfile"
 import { ThemeToggle } from "./ToggleTheme"
 import { useTheme } from "next-themes"
 import { X } from "lucide-react"
+import { usePermissions } from "@/hooks/usePermissions"
+import { PERMISSIONS } from "@/lib/permissions"
 
 export function AppSidebar() {
   const pathname = usePathname()
   const { theme } = useTheme()
   const { lang, setLang } = useLanguage()
   const { isMobile, setOpenMobile } = useSidebar()
+  const { checkPermission, isAdmin } = usePermissions()
   const t = translations[lang]
+
+  // Filter sidebar items based on permissions
+  const getFilteredSidebarConfig = () => {
+    return SidebarConfig.map(group => ({
+      ...group,
+      items: group.items.filter(item => {
+        // Check permissions for each menu item
+        switch (item.title) {
+          case 'dashboard':
+            return checkPermission(PERMISSIONS.DASHBOARD_VIEW);
+          case 'products':
+            return checkPermission(PERMISSIONS.PRODUCTS_VIEW);
+          case 'sellProduct':
+            return checkPermission(PERMISSIONS.SALES_CREATE);
+          case 'categories':
+            return checkPermission(PERMISSIONS.CATEGORIES_VIEW);
+          case 'storageLocks':
+            return checkPermission(PERMISSIONS.STORAGE_VIEW);
+          case 'userManagement':
+            return checkPermission(PERMISSIONS.USERS_VIEW);
+          case 'reports':
+            return checkPermission(PERMISSIONS.REPORTS_VIEW);
+          case 'settings':
+            return checkPermission(PERMISSIONS.SETTINGS_VIEW);
+          default:
+            return isAdmin(); // Default to admin-only for unknown items
+        }
+      })
+    })).filter(group => group.items.length > 0); // Remove empty groups
+  };
 
   // Close mobile sidebar when navigating to a new page
   useEffect(() => {
+    console.log(JSON.stringify(getFilteredSidebarConfig()))
     if (isMobile) {
       setOpenMobile(false)
     }
   }, [pathname, isMobile, setOpenMobile])
 
   return (
-    <Sidebar 
+    <Sidebar
       variant="floating"
       side="left"
       collapsible={isMobile ? "offcanvas" : "icon"}
@@ -54,7 +88,7 @@ export function AppSidebar() {
         '--sidebar-foreground': theme === 'dark' ? '#ffffff' : '#000000',
       } as React.CSSProperties}
     >
-      <SidebarHeader 
+      <SidebarHeader
         className="border-b border-slate-200 dark:border-[#333333] p-4 md:p-6"
         style={{
           backgroundColor: theme === 'dark' ? '#000000' : '#ffffff',
@@ -72,7 +106,7 @@ export function AppSidebar() {
               <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400">Management System</p>
             </div>
           </div>
-          
+
           {/* Mobile close button */}
           {isMobile && (
             <Button
@@ -85,7 +119,7 @@ export function AppSidebar() {
             </Button>
           )}
         </div>
-        
+
         {/* Language and Theme toggles */}
         <div className="mt-3 md:mt-4 grid grid-cols-2 gap-2 group-data-[collapsible=icon]:hidden">
           <button
@@ -97,26 +131,26 @@ export function AppSidebar() {
           <ThemeToggle />
         </div>
       </SidebarHeader>
-      
-      <SidebarContent 
+
+      <SidebarContent
         className="p-2 md:p-4"
         style={{
           backgroundColor: theme === 'dark' ? '#000000' : '#ffffff',
         } as React.CSSProperties}
       >
-        {SidebarConfig.map((group) => (
+        {getFilteredSidebarConfig().map((group) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 px-2 md:px-0 group-data-[collapsible=icon]:hidden">
               {t[group.label as keyof typeof t] || group.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu className="space-y-1">
-              {group.items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === item.url}
-                  className="
+                {group.items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={pathname === item.url}
+                      className="
                   w-full justify-start px-2 md:px-3 py-2 text-sm transition-colors
                   hover:bg-slate-100 dark:hover:bg-slate-800
                   data-[active=true]:bg-orange-50 data-[active=true]:text-orange-700
@@ -133,10 +167,10 @@ export function AppSidebar() {
                   group-data-[collapsible=icon]:py-3
                   group-data-[collapsible=icon]:text-base
                   "
-                >
-                  <Link
-                  href={item.url}
-                  className="
+                    >
+                      <Link
+                        href={item.url}
+                        className="
                     flex items-center gap-3 w-full
                     group-data-[collapsible=icon]:justify-center
                     group-data-[collapsible=icon]:gap-0
@@ -144,22 +178,22 @@ export function AppSidebar() {
                     group-data-[collapsible=icon]:items-center
                     group-data-[collapsible=icon]:px-4
                   "
-                  >
-                  <item.icon className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate group-data-[collapsible=icon]:hidden">
-                    {t[item.title as keyof typeof t] || item.title}
-                  </span>
-                  </Link>
-                </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                      >
+                        <item.icon className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate group-data-[collapsible=icon]:hidden">
+                          {t[item.title as keyof typeof t] || item.title}
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         ))}
       </SidebarContent>
-      
-      <SidebarFooter 
+
+      <SidebarFooter
         className="p-2 md:p-4 border-t border-slate-200 dark:border-[#333333]"
         style={{
           backgroundColor: theme === 'dark' ? '#000000' : '#ffffff',
