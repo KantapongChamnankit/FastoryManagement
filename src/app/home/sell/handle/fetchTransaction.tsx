@@ -31,8 +31,11 @@ export async function fetchTransaction(
                 setTodaySales(salesSum)
                 setTodayProfit(profitSum)
                 setTodayTransactions(txCount)
+                return;
             })
+        return;
     } catch (error) {
         toast({ title: "Error", description: "Failed to fetch sales.", variant: "destructive" })
+        return
     }
 }

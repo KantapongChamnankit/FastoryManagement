@@ -31,7 +31,7 @@ import { useTheme } from "next-themes";
 import Loading from "./loading";
 import { ISettings } from "@/lib/interface/ISetting";
 import { IUser } from "@/lib/interface/IUser";
-import { usePermissions } from "@/hooks/usePermissions";
+import { usePermissions } from "@/hooks/use-permissions";
 
 // Extend the session type to include id
 interface ExtendedUser {

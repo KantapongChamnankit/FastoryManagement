@@ -40,6 +40,12 @@ export const PERMISSIONS = {
   // Settings permissions
   SETTINGS_VIEW: 'settings:view',
   SETTINGS_UPDATE: 'settings:update',
+  
+  // Notification permissions
+  NOTIFICATIONS_VIEW: 'notifications:view',
+  NOTIFICATIONS_CREATE: 'notifications:create',
+  NOTIFICATIONS_MANAGE: 'notifications:manage',
+  NOTIFICATIONS_DELETE: 'notifications:delete',
 } as const;
 
 // Role definitions with permissions
@@ -85,6 +91,12 @@ export const ROLE_PERMISSIONS = {
     // Settings - full access
     PERMISSIONS.SETTINGS_VIEW,
     PERMISSIONS.SETTINGS_UPDATE,
+    
+    // Notifications - full access for admin
+    PERMISSIONS.NOTIFICATIONS_VIEW,
+    PERMISSIONS.NOTIFICATIONS_CREATE,
+    PERMISSIONS.NOTIFICATIONS_MANAGE,
+    PERMISSIONS.NOTIFICATIONS_DELETE,
   ],
   
   staff: [
@@ -111,10 +123,13 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.STORAGE_DELETE,
 
     PERMISSIONS.SETTINGS_UPDATE,
-    PERMISSIONS.SETTINGS_VIEW
+    PERMISSIONS.SETTINGS_VIEW,
+    
+    // Notifications - can only view their own
+    PERMISSIONS.NOTIFICATIONS_VIEW,
+    
     // No user management access
     // No reports access
-    // No settings access
   ],
 } as const;
 

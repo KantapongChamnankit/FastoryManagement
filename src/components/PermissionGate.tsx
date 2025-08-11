@@ -1,6 +1,6 @@
 "use client";
 
-import { usePermissions } from "@/hooks/usePermissions";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface PermissionGateProps {
   permission?: string;

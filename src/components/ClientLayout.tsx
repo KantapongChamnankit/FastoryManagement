@@ -21,7 +21,7 @@ import { INotification } from "@/lib/interface/INofication"
 import * as NotificationService from "@/lib/services/NotificationService"
 import { useSession } from "next-auth/react"
 import { useLowStockMonitor } from "@/hooks/useLowStockMonitor"
-import { usePermissions } from "@/hooks/usePermissions"
+import { usePermissions } from "@/hooks/use-permissions"
 
 // Memoized notification icon component
 const NotificationIcon = React.memo(({ type }: { type: string }) => {
@@ -109,6 +109,22 @@ const ClientLayout = React.memo(function ClientLayout({
     }
   }, [session?.user, status]);
 
+  // Listen for global notification updates
+  useEffect(() => {
+    const handleNotificationUpdate = () => {
+      fetchNotifications();
+    };
+
+    // Listen for custom events
+    window.addEventListener('notification-updated', handleNotificationUpdate);
+    window.addEventListener('notification-sent', handleNotificationUpdate);
+    
+    return () => {
+      window.removeEventListener('notification-updated', handleNotificationUpdate);
+      window.removeEventListener('notification-sent', handleNotificationUpdate);
+    };
+  }, [fetchNotifications]);
+
   // Memoized notification handlers
   const markAsRead = useCallback((id: string) => {
     setNotification(prev => prev.map(notif =>
@@ -118,6 +134,7 @@ const ClientLayout = React.memo(function ClientLayout({
     NotificationService.markNotificationAsRead(id).catch((err: any) => {
       console.error("Failed to mark notification as read:", err)
     })
+    window.dispatchEvent(new CustomEvent('notification-sent'));
   }, [])
 
   const markAllAsRead = useCallback(() => {
@@ -130,6 +147,7 @@ const ClientLayout = React.memo(function ClientLayout({
     ).catch((err: any) => {
       console.error("Failed to mark notifications as read:", err)
     })
+    window.dispatchEvent(new CustomEvent('notification-sent'));
   }, [notification])
 
   const removeNotification = useCallback((id: string) => {
@@ -137,6 +155,7 @@ const ClientLayout = React.memo(function ClientLayout({
     NotificationService.removeNotification(id).catch((err: any) => {
       console.error("Failed to remove notification:", err)
     })
+    window.dispatchEvent(new CustomEvent('notification-sent'));
   }, [])
 
   // Optimized welcome toast effect

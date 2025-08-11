@@ -1,4 +1,4 @@
-import { FileText, Home, Lock, Package, Settings, ShoppingCart, Tags, Users } from "lucide-react";
+import { Bell, FileText, Home, Lock, Package, Settings, ShoppingCart, Tags, Users } from "lucide-react";
 
 export const SidebarConfig = [
   {
@@ -38,6 +38,11 @@ export const SidebarConfig = [
         title: "userManagement",
         url: "/home/users",
         icon: Users,
+      },
+      {
+        title: "notifications",
+        url: "/home/notifications",
+        icon: Bell,
       },
     ],
   },

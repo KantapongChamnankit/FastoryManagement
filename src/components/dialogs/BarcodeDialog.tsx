@@ -14,7 +14,7 @@ import * as ProductService from "@/lib/services/ProductService"
 import * as CategoryService from "@/lib/services/CategoryService"
 import * as StockLocationService from "@/lib/services/StockLocationService"
 import { ICategory, IProduct, IStockLocation } from "@/lib"
-import { usePermissions } from "@/hooks/usePermissions"
+import { usePermissions } from "@/hooks/use-permissions"
 
 interface Product {
     _id?: string

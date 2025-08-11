@@ -27,7 +27,7 @@ import { UserProfile } from "./UserProfile"
 import { ThemeToggle } from "./ToggleTheme"
 import { useTheme } from "next-themes"
 import { X } from "lucide-react"
-import { usePermissions } from "@/hooks/usePermissions"
+import { usePermissions } from "@/hooks/use-permissions"
 import { PERMISSIONS } from "@/lib/permissions"
 
 export function AppSidebar() {

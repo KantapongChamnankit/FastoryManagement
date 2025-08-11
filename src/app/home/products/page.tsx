@@ -13,7 +13,7 @@ import { Plus, Search, Grid3X3, List, Edit, Trash2, ShoppingCart, Package, Camer
 import { useToast } from "@/hooks/use-toast"
 import { useLanguage } from "@/contexts"
 import { translations } from "@/lib/utils/Language"
-import { usePermissions } from "@/hooks/usePermissions"
+import { usePermissions } from "@/hooks/use-permissions"
 import { PermissionGate } from "@/components/PermissionGate"
 import { PERMISSIONS } from "@/lib/permissions"
 
