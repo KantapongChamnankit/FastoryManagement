@@ -10,6 +10,8 @@ import { IRole, IUser } from "@/lib"
 import { signOut, useSession } from "next-auth/react"
 import * as UserService from "@/lib/services/UserService"
 import * as RoleService from "@/lib/services/RoleService"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { translations } from "@/lib/utils/Language"
 
 // Extend the session type to include id
 interface ExtendedUser {
@@ -28,6 +30,8 @@ export function UserProfile() {
     const [role, setRole] = useState<IRole[] | null>(null)
     const [loading, setLoading] = useState(false)
     const router = useRouter()
+    const { lang } = useLanguage()
+    const t = translations[lang] || translations.en
     let { data: session, status, update } = useSession({ required: true })
 
     const extendedSession = session as ExtendedSession
@@ -150,7 +154,7 @@ export function UserProfile() {
                 >
                     <LogOut className="h-4 w-4 mr-2 group-data-[collapsible=icon]:mr-0" />
                     <span className="group-data-[collapsible=icon]:hidden">
-                        {loading ? "Signing out..." : "Sign Out"}
+                        {loading ? (t.signingOut || "Signing out...") : (t.logout || "Sign Out")}
                     </span>
                 </Button>
             </div>

@@ -23,8 +23,11 @@ export const usePermissions = () => {
 
   const extendedSession = session as ExtendedSession;
   useEffect(() => {
-    console.log((extendedSession.user as any)?.role);
-    RoleService.findById((extendedSession.user as any)?.role).then((role) => {
+    if (status !== 'authenticated' || !extendedSession?.user?.id) {
+      setUserRole(null);
+      return;
+    }
+    RoleService.findById((extendedSession?.user as any)?.role ?? '').then((role) => {
         console.log(role, "role data");
         setUserRole(role?.name || null);
     })

@@ -117,8 +117,8 @@ export default function NotificationsPage() {
         } catch (error) {
             console.error("Error fetching users:", error)
             toast({
-                title: "Error",
-                description: "Failed to fetch users",
+                title: t.error || "Error",
+                description: t.failedToFetch || "Failed to fetch users",
                 variant: "destructive"
             })
         }
@@ -136,8 +136,8 @@ export default function NotificationsPage() {
         } catch (error) {
             console.error("Error fetching user notifications:", error)
             toast({
-                title: "Error",
-                description: "Failed to fetch notifications",
+                title: t.error || "Error",
+                description: t.failedToFetchNotifications || "Failed to fetch notifications",
                 variant: "destructive"
             })
         }
@@ -146,8 +146,8 @@ export default function NotificationsPage() {
     const handleSendNotification = async () => {
         if (!notificationForm.title || !notificationForm.message || notificationForm.selectedUsers.length === 0) {
             toast({
-                title: "Validation Error",
-                description: "Please fill in all required fields and select at least one user",
+                title: t.validationError || "Validation Error",
+                description: t.fillAllRequiredFields || "Please fill in all required fields and select at least one user",
                 variant: "destructive"
             })
             return
@@ -168,7 +168,7 @@ export default function NotificationsPage() {
 
             toast({
                 title: "Success",
-                description: `Notification sent to ${notificationForm.selectedUsers.length} user(s)`,
+                description: `${t.notificationSent || "Notification sent to"} ${notificationForm.selectedUsers.length} ${t.users || "user(s)"}`,
             })
 
             // Trigger global notification refresh
@@ -189,8 +189,8 @@ export default function NotificationsPage() {
         } catch (error) {
             console.error("Error sending notification:", error)
             toast({
-                title: "Error",
-                description: "Failed to send notification",
+                title: t.error || "Error",
+                description: t.failedToSend || "Failed to send notification",
                 variant: "destructive"
             })
         }
@@ -208,7 +208,7 @@ export default function NotificationsPage() {
             await NotificationService.deleteNotification(notificationId)
             toast({
                 title: "Success",
-                description: "Notification deleted successfully"
+                description: t.notificationDeleted || "Notification deleted successfully"
             })
             
             // Trigger global notification refresh
@@ -222,8 +222,8 @@ export default function NotificationsPage() {
         } catch (error) {
             console.error("Error deleting notification:", error)
             toast({
-                title: "Error",
-                description: "Failed to delete notification",
+                title: t.error || "Error",
+                description: t.failedToDeleteNotification || "Failed to delete notification",
                 variant: "destructive"
             })
         }
@@ -292,20 +292,20 @@ export default function NotificationsPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-semibold text-slate-900">{t.notifications}</h1>
-                    <p className="text-slate-600">Manage user notifications and announcements</p>
+                    <p className="text-slate-600">{t.manageNotifications || "Manage user notifications and announcements"}</p>
                 </div>
                 <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
                     <DialogTrigger asChild>
                         <Button className="bg-blue-600 hover:bg-blue-700">
                             <Send className="h-4 w-4 mr-2" />
-                            Send Notification
+                            {t.sendNotification || "Send Notification"}
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw] sm:w-full">
                         <DialogHeader>
-                            <DialogTitle>Send Notification</DialogTitle>
+                            <DialogTitle>{t.sendNotification || "Send Notification"}</DialogTitle>
                             <DialogDescription>
-                                Create and send notifications to selected users
+                                {t.createAndSend || "Create and send notifications to selected users"}
                             </DialogDescription>
                         </DialogHeader>
                         
@@ -318,7 +318,7 @@ export default function NotificationsPage() {
                                             id="title"
                                             value={notificationForm.title}
                                             onChange={(e) => setNotificationForm(prev => ({ ...prev, title: e.target.value }))}
-                                            placeholder="Notification title"
+                                            placeholder={t.notificationTitle || "Notification title"}
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -334,7 +334,7 @@ export default function NotificationsPage() {
                                                 <SelectItem value="info">Info</SelectItem>
                                                 <SelectItem value="success">Success</SelectItem>
                                                 <SelectItem value="warning">Warning</SelectItem>
-                                                <SelectItem value="error">Error</SelectItem>
+                                                <SelectItem value="error">{t.error || "Error"}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -342,7 +342,7 @@ export default function NotificationsPage() {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="category">Category</Label>
+                                        <Label htmlFor="category">{t.category || "Category"}</Label>
                                         <Select
                                             value={notificationForm.category}
                                             onValueChange={(value: any) => setNotificationForm(prev => ({ ...prev, category: value }))}
@@ -360,7 +360,7 @@ export default function NotificationsPage() {
                                         </Select>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="actionUrl">Action URL (Optional)</Label>
+                                        <Label htmlFor="actionUrl">{t.actionUrlOptional || "Action URL (Optional)"}</Label>
                                         <Input
                                             id="actionUrl"
                                             value={notificationForm.actionUrl}
@@ -376,14 +376,14 @@ export default function NotificationsPage() {
                                         id="message"
                                         value={notificationForm.message}
                                         onChange={(e) => setNotificationForm(prev => ({ ...prev, message: e.target.value }))}
-                                        placeholder="Notification message"
+                                        placeholder={t.notificationMessage || "Notification message"}
                                         rows={3}
                                         className="resize-none"
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>Templates (Click to use)</Label>
+                                    <Label>{t.templates || "Templates (Click to use)"}</Label>
                                     <div className="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto">
                                         {notificationTemplates.map((template, index) => (
                                             <div
@@ -410,7 +410,7 @@ export default function NotificationsPage() {
 
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <Label>Select Users ({notificationForm.selectedUsers.length} selected)</Label>
+                                        <Label>{t.selectUsers || "Select Users"} ({notificationForm.selectedUsers.length} {t.selected || "selected"})</Label>
                                         <div className="flex gap-1">
                                             <Button
                                                 variant="outline"
@@ -470,14 +470,14 @@ export default function NotificationsPage() {
                             </div>
                         </ScrollArea>                        <DialogFooter className="flex flex-col sm:flex-row gap-2">
                             <Button variant="outline" onClick={() => setShowSendDialog(false)} className="w-full sm:w-auto">
-                                Cancel
+                                {t.cancel || "Cancel"}
                             </Button>
                             <Button
                                 onClick={handleSendNotification}
                                 disabled={sendingNotification || !notificationForm.title || !notificationForm.message || notificationForm.selectedUsers.length === 0}
                                 className="w-full sm:w-auto"
                             >
-                                {sendingNotification ? "Sending..." : `Send to ${notificationForm.selectedUsers.length} user(s)`}
+                                {sendingNotification ? (t.sending || "Sending...") : `${t.sendToUsers || "Send to"} ${notificationForm.selectedUsers.length} ${t.users || "user(s)"}`}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -488,7 +488,7 @@ export default function NotificationsPage() {
             <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-4">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-xs sm:text-sm font-medium">Total Users</CardTitle>
+                        <CardTitle className="text-xs sm:text-sm font-medium">{t.totalUsers || "Total Users"}</CardTitle>
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -498,7 +498,7 @@ export default function NotificationsPage() {
 
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-xs sm:text-sm font-medium">Total Notifications</CardTitle>
+                        <CardTitle className="text-xs sm:text-sm font-medium">{t.allNotifications || "Total Notifications"}</CardTitle>
                         <Bell className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -522,7 +522,7 @@ export default function NotificationsPage() {
 
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-xs sm:text-sm font-medium">Read</CardTitle>
+                        <CardTitle className="text-xs sm:text-sm font-medium">{t.read || "Read"}</CardTitle>
                         <CheckCircle className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -538,10 +538,10 @@ export default function NotificationsPage() {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Users className="h-5 w-5" />
-                        User Notifications
+                        {t.userNotifications || "User Notifications"}
                     </CardTitle>
                     <CardDescription>
-                        View and manage notifications for each user
+                        {t.viewManageNotifications || "View and manage notifications for each user"}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -550,7 +550,7 @@ export default function NotificationsPage() {
                         <div className="relative flex-1 max-w-sm">
                             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
-                                placeholder="Search users..."
+                                placeholder={t.searchUsers || "Search users..."}
                                 className="pl-8"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -563,12 +563,12 @@ export default function NotificationsPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="min-w-[200px]">User</TableHead>
-                                    <TableHead className="hidden sm:table-cell">Email</TableHead>
-                                    <TableHead className="text-center w-16">Total</TableHead>
+                                    <TableHead className="min-w-[200px]">{t.user || "User"}</TableHead>
+                                    <TableHead className="hidden sm:table-cell">{t.email || "Email"}</TableHead>
+                                    <TableHead className="text-center w-16">{t.total || "Total"}</TableHead>
                                     <TableHead className="text-center w-16">Unread</TableHead>
-                                    <TableHead className="text-center w-16 hidden sm:table-cell">Read</TableHead>
-                                    <TableHead className="text-center w-20">Actions</TableHead>
+                                    <TableHead className="text-center w-16 hidden sm:table-cell">{t.read || "Read"}</TableHead>
+                                    <TableHead className="text-center w-20">{t.actions || "Actions"}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -591,11 +591,11 @@ export default function NotificationsPage() {
                                                     <div className="text-xs">
                                                         {user.status === 'active' ? (
                                                             <Badge variant="outline" className="text-green-600 border-green-200 text-xs">
-                                                                Active
+                                                                {t.active || "Active"}
                                                             </Badge>
                                                         ) : (
                                                             <Badge variant="outline" className="text-gray-600 border-gray-200 text-xs">
-                                                                Inactive
+                                                                {t.inactive || "Inactive"}
                                                             </Badge>
                                                         )}
                                                     </div>
@@ -626,7 +626,7 @@ export default function NotificationsPage() {
                                                 className="text-xs px-2"
                                             >
                                                 <Eye className="h-3 w-3 sm:mr-1" />
-                                                <span className="hidden sm:inline">View</span>
+                                                <span className="hidden sm:inline">{t.view || "View"}</span>
                                             </Button>
                                         </TableCell>
                                     </TableRow>
@@ -643,7 +643,7 @@ export default function NotificationsPage() {
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <MessageSquare className="h-5 w-5" />
-                            Notifications for {viewingUser?.first_name} {viewingUser?.last_name}
+                            {t.notificationsFor || "Notifications for"} {viewingUser?.first_name} {viewingUser?.last_name}
                         </DialogTitle>
                         <DialogDescription>
                             {viewingUser?.email} • {notifications.length} notifications
@@ -655,7 +655,7 @@ export default function NotificationsPage() {
                             {notifications.length === 0 ? (
                                 <div className="text-center py-8 text-gray-500">
                                     <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                    <p>No notifications found</p>
+                                    <p>{t.noNotificationsFound || "No notifications found"}</p>
                                 </div>
                             ) : (
                                 notifications.map((notification) => (
@@ -676,7 +676,7 @@ export default function NotificationsPage() {
                                                         </Badge>
                                                         {!notification.read && (
                                                             <Badge className="bg-blue-600 text-white text-xs">
-                                                                New
+                                                                {t.new || "New"}
                                                             </Badge>
                                                         )}
                                                     </div>
@@ -687,7 +687,7 @@ export default function NotificationsPage() {
                                                         </span>
                                                         {notification.actionUrl && (
                                                             <span className="text-blue-600 truncate">
-                                                                Action: {notification.actionUrl}
+                                                                {t.action || "Action"}: {notification.actionUrl}
                                                             </span>
                                                         )}
                                                     </div>

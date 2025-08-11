@@ -22,13 +22,11 @@ export default function RootLayout({
   return (
     <>
       <SessionForceUpdate router={router} />
-      <LanguageProvider>
         <ClientLayout>
           <DataWrapper>
             {children}
           </DataWrapper>
         </ClientLayout>
-      </LanguageProvider>
     </>
   )
 }

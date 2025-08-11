@@ -49,7 +49,7 @@ export default function LocksPage() {
         .catch(() => {
           toast({
             title: t.error ?? "Error",
-            description: "Failed to fetch user data.",
+            description: t.failedToFetchUserData ?? "Failed to fetch user data.",
             variant: "destructive",
           })
         })
@@ -107,14 +107,14 @@ export default function LocksPage() {
         .catch(() => {
           toast({
             title: t.error ?? "Error",
-            description: "Failed to delete storage lock.",
+            description: t.failedToDeleteStorageLock ?? "Failed to delete storage lock.",
             variant: "destructive",
           })
         })
     } catch {
       toast({
         title: "Error",
-        description: "Failed to delete storage lock.",
+        description: t.failedToDeleteStorageLock ?? "Failed to delete storage lock.",
         variant: "destructive",
       })
     }
@@ -316,7 +316,7 @@ export default function LocksPage() {
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>
-                                {"Are you sure you want to delete this storage lock?"}
+                                {t.confirmDeleteStorageLock || "Are you sure you want to delete this storage lock?"}
                               </AlertDialogTitle>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

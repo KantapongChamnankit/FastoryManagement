@@ -166,7 +166,7 @@ export default function CategoriesPage() {
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>
-                  {"Are you sure you want to delete this category?"}
+                  {t.confirmDeleteCategory || "Are you sure you want to delete this category?"}
                 </AlertDialogTitle>
               </AlertDialogHeader>
               <AlertDialogFooter>

@@ -42,7 +42,7 @@ export default function UsersPage() {
     RoleService.list()
       .then(setRoles)
       .catch(() => {
-        toast({ title: t.error ?? "Error", description: "Failed to fetch roles.", variant: "destructive" })
+        toast({ title: t.error ?? "Error", description: t.failedToFetchRoles ?? "Failed to fetch roles.", variant: "destructive" })
       })
   }
 
@@ -227,7 +227,7 @@ export default function UsersPage() {
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>
-                            {"Are you sure you want to delete this user?"}
+                            {t.confirmDeleteUser || "Are you sure you want to delete this user?"}
                           </AlertDialogTitle>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

@@ -21,6 +21,7 @@ import { useSession } from "next-auth/react"
 import * as TransactionService from "@/lib/services/TransactionService"
 import Loading from "./loading"
 import { useTheme } from "next-themes"
+import { fetchProducts } from "../products/handle/fetchProducts"
 
 interface CartItem extends IProduct {
   cartQuantity: number
@@ -41,6 +42,7 @@ export default function SellPage() {
   const { lang } = useLanguage()
   const [loading, setLoading] = useState(true)
   const { theme } = useTheme()
+  const { userRole } = usePermissions()
 
   const t = translations[lang]
 
@@ -60,11 +62,17 @@ export default function SellPage() {
         }
         return
       }
-      fetchProductData()
-      fetchUser()
-      setLoading(false)
+      Promise.all([
+        fetchProductData(),
+        fetchUser(),
+
+      ]).then(() => {
+        if (userRole !== null) {
+          setLoading(false)
+        }
+      })
     })
-  }, [])
+  }, [userRole])
 
   const handleBarcodeSubmit = async () => {
     if (!barcode.trim()) return
@@ -77,6 +85,14 @@ export default function SellPage() {
         // Check if product already in cart
         const existingItemIndex = cart.findIndex((item) => item.barcode === barcode)
 
+        if (product.quantity <= 0) {
+          toast({
+            title: "Insufficient stock",
+            description: `${product.name} (${product.barcode}) is out of stock.`,
+            variant: "destructive",
+          })
+          return
+        }
         if (existingItemIndex >= 0) {
           // Increase quantity if already in cart
           const updatedCart = [...cart]
@@ -107,7 +123,7 @@ export default function SellPage() {
       console.error("Error finding product:", error)
       toast({
         title: t.error || "Error",
-        description: "Failed to find product",
+        description: t.failedToFindProduct ?? "Failed to find product",
         variant: "destructive",
       })
     }
@@ -180,13 +196,17 @@ export default function SellPage() {
       })
 
       // Clear cart and refresh data
-      setCart([])
-      fetchTransaction(setSales, setTodaySales, setTodayProfit, setTodayTransactions, toast)
+      Promise.all([
+        fetchTransaction(setSales, setTodaySales, setTodayProfit, setTodayTransactions, toast),
+        fetchProducts((load) => { setLoading(load) }, (products) => setProducts(products))
+      ]).then(() => {
+        setCart([])
+      })
     } catch (error) {
       console.error("Error processing sale:", error)
       toast({
         title: t.error || "Error",
-        description: "Failed to complete sale",
+        description: t.failedToCompleteSale ?? "Failed to complete sale",
         variant: "destructive",
       })
     } finally {

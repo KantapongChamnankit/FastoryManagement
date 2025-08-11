@@ -121,15 +121,6 @@ export function AppSidebar() {
         </div>
 
         {/* Language and Theme toggles */}
-        <div className="mt-3 md:mt-4 grid grid-cols-2 gap-2 group-data-[collapsible=icon]:hidden">
-          <button
-            onClick={() => setLang(lang === "en" ? "th" : "en")}
-            className="px-2 md:px-3 py-1 rounded border text-xs font-medium bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:hover:bg-slate-700 transition flex items-center justify-center"
-          >
-            {lang === "en" ? "TH" : "EN"}
-          </button>
-          <ThemeToggle />
-        </div>
       </SidebarHeader>
 
       <SidebarContent

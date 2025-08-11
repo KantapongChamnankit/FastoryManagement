@@ -17,7 +17,8 @@ class AuthService {
         const response = await signIn("credentials", {
             redirect: false,
             email: username,
-            password: password
+            password: password,
+            callbackUrl: "/login"
         })
 
         if (response?.error) {
@@ -27,6 +28,25 @@ class AuthService {
 
         if (response?.ok) {
             console.log("Login successful");
+            return true;
+        }
+
+        return false;
+    }
+    
+    public async googleLogin(): Promise<boolean> {
+        const response = await signIn("google", {
+            redirect: false,
+            callbackUrl: "/login"
+        })
+
+        if (response?.error) {
+            console.error("Google login failed:", response.error);
+            return false;
+        }
+
+        if (response?.ok) {
+            console.log("Google login successful");
             return true;
         }
 

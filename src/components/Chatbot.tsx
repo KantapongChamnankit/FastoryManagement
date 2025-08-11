@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MessageCircle, X, Send, Bot, User } from "lucide-react"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { translations } from "@/lib/utils/Language"
 
 interface Message {
   id: string
@@ -16,10 +18,13 @@ interface Message {
 
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false)
+  const { lang } = useLanguage()
+  const t = translations[lang] || translations.en
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "Hello! I'm your inventory assistant. How can I help you today?",
+      text: t.chatbotWelcome || "Hello! I'm your inventory assistant. How can I help you today?",
       isUser: false,
       timestamp: new Date(),
     },
@@ -82,7 +87,7 @@ export function Chatbot() {
       setTimeout(() => {
         const errorMessage: Message = {
           id: (Date.now() + 1).toString(),
-          text: "I'm sorry, I'm having trouble responding right now. Please try again later.",
+          text: t.chatbotError || "I'm sorry, I'm having trouble responding right now. Please try again later.",
           isUser: false,
           timestamp: new Date(),
         }
@@ -117,7 +122,7 @@ export function Chatbot() {
           <CardHeader className="bg-orange-600 text-white p-4">
             <CardTitle className="flex items-center gap-2 text-sm">
               <Bot className="h-4 w-4" />
-              Inventory Assistant
+              {t.chat || "Chat"} - Inventory Assistant
             </CardTitle>
           </CardHeader>
 
@@ -181,7 +186,7 @@ export function Chatbot() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Type your message..."
+                  placeholder={t.typeYourMessage || "Type your message..."}
                   disabled={isTyping}
                   className="flex-1"
                 />

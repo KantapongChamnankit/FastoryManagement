@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Plus, Search, Grid3X3, List, Edit, Trash2, ShoppingCart, Package, Camera, LockIcon } from "lucide-react"
+import { Plus, Search, Grid3X3, List, Edit, Trash2, ShoppingCart, Package, Camera, LockIcon, ShoppingBag } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useLanguage } from "@/contexts"
 import { translations } from "@/lib/utils/Language"
@@ -115,11 +115,34 @@ export default function ProductsPage() {
   }, [])
 
   const filteredProducts = products.filter(
-    (product: IProduct) =>
-      (product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.barcode?.includes(searchTerm)) &&
-      (selectedCategoryFilter === "all" || !selectedCategoryFilter ? true : categories.some((x => x.name === selectedCategoryFilter))) &&
-      (selectedLockFilter === "all" || !selectedLockFilter ? true : locks.some((x) => x.name === selectedLockFilter && x.currentStock > 0))
+    (product: IProduct) => {
+      // Search filter
+      const searchMatch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.barcode?.includes(searchTerm);
+
+      // Category filter
+      const categoryMatch = selectedCategoryFilter === "all" ||
+        categories.some((cat) => cat._id === product.category_id && cat.name === selectedCategoryFilter);
+
+      // Lock/Storage location filter
+      const lockMatch = selectedLockFilter === "all" ||
+        locks.some((lock) => lock._id === product.stock_location_id && lock.name === selectedLockFilter);
+
+      // Debug logging (remove in production)
+      if (selectedCategoryFilter !== "all" || selectedLockFilter !== "all") {
+        console.log('Product:', product.name, {
+          selectedCategory: selectedCategoryFilter,
+          selectedLock: selectedLockFilter,
+          productCategoryId: product.category_id,
+          productLockId: product.stock_location_id,
+          categoryMatch,
+          lockMatch,
+          finalMatch: searchMatch && categoryMatch && lockMatch
+        });
+      }
+
+      return searchMatch && categoryMatch && lockMatch;
+    }
   )
 
   const { lang } = useLanguage()
@@ -187,6 +210,7 @@ export default function ProductsPage() {
               <SelectItem value="all">{t.category}</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat._id} value={cat.name}>
+                  <ShoppingBag className="h-4 w-4 inline mr-2 translate-y-[-2px]" />
                   {cat.name}
                 </SelectItem>
               ))}
@@ -203,7 +227,8 @@ export default function ProductsPage() {
               <SelectItem value="all">{t.storageLock}</SelectItem>
               {locks.map((lock) => (
                 <SelectItem key={lock._id} value={lock.name}>
-                  {lock.name}
+                  <LockIcon className="h-4 w-4 inline mr-2 translate-y-[-2px]" />
+                  {lock.name} ({lock.currentStock})
                 </SelectItem>
               ))}
             </SelectContent>

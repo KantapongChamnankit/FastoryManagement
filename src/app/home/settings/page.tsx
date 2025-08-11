@@ -146,7 +146,7 @@ export default function SettingsPage() {
 
         toast({
             title: t.settingsUpdated || "Settings updated",
-            description: "Your preferences have been saved successfully.",
+            description: t.yourPreferencesSaved || "Your preferences have been saved successfully.",
         })
     }
 
@@ -174,14 +174,14 @@ export default function SettingsPage() {
             }));
 
             toast({
-                title: "Profile updated",
-                description: "Your profile has been updated successfully.",
+                title: t.profileUpdated || "Profile updated",
+                description: t.profileUpdatedDesc || "Your profile has been updated successfully.",
             });
         } catch (error) {
             console.error("Error updating profile:", error);
             toast({
-                title: "Error",
-                description: "Failed to update profile. Please try again.",
+                title: t.error || "Error",
+                description: t.failedToUpdateProfile || "Failed to update profile. Please try again.",
                 variant: "destructive"
             });
         } finally {
@@ -203,8 +203,8 @@ export default function SettingsPage() {
             reader.readAsDataURL(file);
 
             toast({
-                title: "Image selected",
-                description: "Don't forget to save your changes!",
+                title: t.imageSelected || "Image selected",
+                description: t.dontForgetSave || "Don't forget to save your changes!",
             });
         }
     }
@@ -238,12 +238,12 @@ export default function SettingsPage() {
                     <CardHeader className="flex flex-row items-center space-y-0 pb-4">
                         <div className="flex items-center space-x-2">
                             <User className="h-5 w-5 text-blue-600" />
-                            <CardTitle className="text-lg">Profile Personalization</CardTitle>
+                            <CardTitle className="text-lg">{t.profilePersonalization || "Profile Personalization"}</CardTitle>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         <CardDescription>
-                            Customize your profile information and appearance
+                            {t.customizeProfileInfo || "Customize your profile information and appearance"}
                         </CardDescription>
 
                         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
@@ -252,7 +252,7 @@ export default function SettingsPage() {
                                 <Avatar className="h-24 w-24">
                                     <AvatarImage
                                         src={profileData.profile_image}
-                                        alt="Profile picture"
+                                        alt={t.profilePicture || "Profile picture"}
                                         className="object-cover"
                                     />
                                     <AvatarFallback className="text-lg">
@@ -266,7 +266,7 @@ export default function SettingsPage() {
                                     className="w-fit"
                                 >
                                     <Camera className="h-4 w-4 mr-2" />
-                                    Change Photo
+                                    {t.changePhoto || "Change Photo"}
                                 </Button>
                                 <input
                                     ref={fileInputRef}
@@ -281,7 +281,7 @@ export default function SettingsPage() {
                             <div className="flex-1 space-y-4 w-full">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="first-name">First Name</Label>
+                                        <Label htmlFor="first-name">{t.firstName || "First Name"}</Label>
                                         <Input
                                             id="first-name"
                                             value={profileData.first_name}
@@ -289,11 +289,11 @@ export default function SettingsPage() {
                                                 ...prev,
                                                 first_name: e.target.value
                                             }))}
-                                            placeholder="Enter your first name"
+                                            placeholder={t.enterFirstName || "Enter your first name"}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="last-name">Last Name</Label>
+                                        <Label htmlFor="last-name">{t.lastName || "Last Name"}</Label>
                                         <Input
                                             id="last-name"
                                             value={profileData.last_name}
@@ -301,14 +301,14 @@ export default function SettingsPage() {
                                                 ...prev,
                                                 last_name: e.target.value
                                             }))}
-                                            placeholder="Enter your last name"
+                                            placeholder={t.enterLastName || "Enter your last name"}
                                         />
                                     </div>
                                 </div>
 
                                 {/* Display only fields */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="email-display" className="text-slate-500">Email (read-only)</Label>
+                                    <Label htmlFor="email-display" className="text-slate-500">{t.emailReadOnly || "Email (read-only)"}</Label>
                                     <Input
                                         id="email-display"
                                         value={extendedSession?.user?.email || ''}
@@ -322,7 +322,7 @@ export default function SettingsPage() {
                                     disabled={profileLoading}
                                     className="w-fit"
                                 >
-                                    {profileLoading ? "Updating..." : "Update Profile"}
+                                    {profileLoading ? (t.updating || "Updating...") : (t.updateProfile || "Update Profile")}
                                 </Button>
                             </div>
                         </div>
