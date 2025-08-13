@@ -9,10 +9,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Plus, Search, Grid3X3, List, Edit, Trash2, ShoppingCart, Package, Camera, LockIcon } from "lucide-react"
+import { Plus, Search, Grid3X3, List, Edit, Trash2, ShoppingCart, Package, Camera, LockIcon, ShoppingBag } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useLanguage } from "@/contexts"
 import { translations } from "@/lib/utils/Language"
+import { usePermissions } from "@/hooks/use-permissions"
+import { PermissionGate } from "@/components/PermissionGate"
+import { PERMISSIONS } from "@/lib/permissions"
 
 import * as CetegoryService from "@/lib/services/CategoryService"
 import * as StockLocationService from "@/lib/services/StockLocationService"
@@ -33,6 +36,8 @@ import { handleDelete } from "./handle/handleDelete"
 import { signOut, useSession } from "next-auth/react"
 import { useRouter } from "next/router"
 import { BarcodeScannerModal } from "@/components/dialogs/BarcodeDialog"
+import { useTheme } from "next-themes"
+import Loading from "./loading"
 
 
 export default function ProductsPage() {
@@ -59,6 +64,8 @@ export default function ProductsPage() {
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all")
   const [selectedLockFilter, setSelectedLockFilter] = useState<string>("all")
   const [userData, setUserData] = useState<IUser | null>(null)
+  const { theme } = useTheme()
+  const { isAdmin, isStaff } = usePermissions()
 
   const { data: session, status } = useSession();
 
@@ -108,14 +115,38 @@ export default function ProductsPage() {
   }, [])
 
   const filteredProducts = products.filter(
-    (product: IProduct) =>
-      (product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.barcode?.includes(searchTerm)) &&
-      (selectedCategoryFilter === "all" || !selectedCategoryFilter ? true : categories.some((x => x.name === selectedCategoryFilter))) &&
-      (selectedLockFilter === "all" || !selectedLockFilter ? true : locks.some((x) => x.name === selectedLockFilter && x.currentStock > 0))
+    (product: IProduct) => {
+      // Search filter
+      const searchMatch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.barcode?.includes(searchTerm);
+
+      // Category filter
+      const categoryMatch = selectedCategoryFilter === "all" ||
+        categories.some((cat) => cat._id === product.category_id && cat.name === selectedCategoryFilter);
+
+      // Lock/Storage location filter
+      const lockMatch = selectedLockFilter === "all" ||
+        locks.some((lock) => lock._id === product.stock_location_id && lock.name === selectedLockFilter);
+
+      // Debug logging (remove in production)
+      if (selectedCategoryFilter !== "all" || selectedLockFilter !== "all") {
+        console.log('Product:', product.name, {
+          selectedCategory: selectedCategoryFilter,
+          selectedLock: selectedLockFilter,
+          productCategoryId: product.category_id,
+          productLockId: product.stock_location_id,
+          categoryMatch,
+          lockMatch,
+          finalMatch: searchMatch && categoryMatch && lockMatch
+        });
+      }
+
+      return searchMatch && categoryMatch && lockMatch;
+    }
   )
 
   const { lang } = useLanguage()
+  const { checkPermission } = usePermissions()
   const t = translations[lang]
 
   return (
@@ -134,10 +165,25 @@ export default function ProductsPage() {
           categories={categories}
           locks={locks}
         /> */}
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsScannerOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t.addProduct}
-        </Button>
+        {isAdmin() ? (
+          <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE}>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsScannerOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t.addProduct}
+            </Button>
+          </PermissionGate>
+        ) : (
+          <PermissionGate permission={PERMISSIONS.PRODUCTS_UPDATE_STOCK}>
+            <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE} fallback={
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsScannerOpen(true)}>
+                <Package className="h-4 w-4 mr-2" />
+                {(t as any).addStock || "Add Stock"}
+              </Button>
+            }>
+              <></>
+            </PermissionGate>
+          </PermissionGate>
+        )}
       </div>
 
       {/* Controls */}
@@ -164,6 +210,7 @@ export default function ProductsPage() {
               <SelectItem value="all">{t.category}</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat._id} value={cat.name}>
+                  <ShoppingBag className="h-4 w-4 inline mr-2 translate-y-[-2px]" />
                   {cat.name}
                 </SelectItem>
               ))}
@@ -180,7 +227,8 @@ export default function ProductsPage() {
               <SelectItem value="all">{t.storageLock}</SelectItem>
               {locks.map((lock) => (
                 <SelectItem key={lock._id} value={lock.name}>
-                  {lock.name}
+                  <LockIcon className="h-4 w-4 inline mr-2 translate-y-[-2px]" />
+                  {lock.name} ({lock.currentStock})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -206,20 +254,34 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Content */}
       {loading ? (
-        <div className="flex flex-col items-center justify-center min-h-[300px]">
-          <img
-            src="/logo.png"
-            alt="Loading..."
-            className="w-24 h-24 mb-4"
-            style={{
-              opacity: (Math.sin(Date.now() / 500) + 1) / 2,
-              transition: "opacity 0.5s ease-in-out",
-            }}
-          />
-          <span className="text-slate-500 text-lg">{t.loading}</span>
-        </div>
+        <Loading theme={theme ?? "dark"} />
+      ) : filteredProducts.length === 0 ? (
+        <Card className="border border-slate-200 shadow-sm">
+          <>
+            <div className="flex flex-col items-center justify-center py-16">
+              <ShoppingCart className="h-24 w-24 text-slate-400" />
+              <br></br>
+              <p className="text-lg text-slate-500 mb-4">{(t as any)?.noProductsFound || "No products found. Let's create one!"}</p>
+              <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE}>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white text-white" onClick={() => setIsScannerOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t.addProduct}
+                </Button>
+              </PermissionGate>
+              <PermissionGate permission={PERMISSIONS.PRODUCTS_UPDATE_STOCK}>
+                <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE} fallback={
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white text-white" onClick={() => setIsScannerOpen(true)}>
+                    <Package className="h-4 w-4 mr-2" />
+                    {(t as any).addStock || "Add Stock"}
+                  </Button>
+                }>
+                  <></>
+                </PermissionGate>
+              </PermissionGate>
+            </div>
+          </>
+        </Card>
       ) : viewMode === "table" ? (
         <ProductTable
           filteredProducts={filteredProducts}

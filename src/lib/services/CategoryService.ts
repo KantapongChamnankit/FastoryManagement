@@ -3,6 +3,9 @@
 import { Category, ICategory, IUser } from "@/lib/index";
 import { autoSerialize } from "../utils";
 import * as ActivityService from "./ActivityService";
+import { MemoriesService } from "./MemoriesService";
+
+const CacheSystem = new MemoriesService();
 
 export async function create(name: string, description: string) {
   return autoSerialize(await new Category({ name, description }).save());

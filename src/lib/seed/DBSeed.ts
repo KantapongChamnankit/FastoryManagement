@@ -9,7 +9,7 @@ import { Image } from '@/lib/models/image';
 import { Product } from '@/lib/models/product';
 import { Transaction } from '@/lib/models/transaction';
 import { Activity } from '@/lib/models/activities';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { IRole } from '../interface/IRole';
 
 dotenv.config();

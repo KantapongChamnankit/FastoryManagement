@@ -2,6 +2,9 @@
 
 import { IStockLocation, StockLocation } from "@/lib/index";
 import { autoSerialize } from "../utils";
+import { MemoriesService } from "./MemoriesService";
+
+const CacheSystem = new MemoriesService();
 
 export async function create(name: string, position: string, capacity: number) {
   return autoSerialize(await new StockLocation({ name, position, capacity }).save())

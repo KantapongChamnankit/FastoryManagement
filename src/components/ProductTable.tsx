@@ -57,7 +57,15 @@ export function ProductTable({ filteredProducts, categories, locks, setSellProdu
                             </TableCell>
                             <TableCell className="text-slate-600">{product.barcode}</TableCell>
                             <TableCell className="text-slate-600">{categories.find((x) => x._id === product.category_id)?.name || ""}</TableCell>
-                            <TableCell className="text-slate-600">{locks.find((x) => x._id === product.stock_location_id)?.name || ""}</TableCell>
+                            {locks.find((x) => x._id === product.stock_location_id)?.name ? (
+                                <TableCell className="text-slate-600">{locks.find((x) => x._id === product.stock_location_id)?.name || ""}</TableCell>
+                            ) : (
+                                <TableCell className="text-slate-600">
+                                    <div className="flex items-center gap-3 p-3 bg-slate-50 animate-pulse">
+                                        <div className="h-4 w-24 bg-slate-200 rounded"></div>
+                                    </div>
+                                </TableCell>
+                            )}
                             <TableCell className="text-slate-600">{product.quantity}</TableCell>
                             <TableCell className="text-slate-600">฿{product.price}</TableCell>
                             <TableCell>

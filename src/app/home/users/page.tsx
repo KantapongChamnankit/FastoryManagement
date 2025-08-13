@@ -18,6 +18,8 @@ import * as UserService from "@/lib/services/UserService"
 import * as RoleService from "@/lib/services/RoleService"
 import { IRole, IUser } from "@/lib"
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog"
+import { useTheme } from "next-themes"
+import Loading from "./loading"
 
 export default function UsersPage() {
   const [users, setUsers] = useState<IUser[]>([])
@@ -40,7 +42,7 @@ export default function UsersPage() {
     RoleService.list()
       .then(setRoles)
       .catch(() => {
-        toast({ title: t.error ?? "Error", description: "Failed to fetch roles.", variant: "destructive" })
+        toast({ title: t.error ?? "Error", description: t.failedToFetchRoles ?? "Failed to fetch roles.", variant: "destructive" })
       })
   }
 
@@ -182,8 +184,8 @@ export default function UsersPage() {
                     {(t as Record<string, string>)[user.status?.toLowerCase()] ?? user.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-slate-600">{new Date(user.updatedAt as number).toISOString().slice(0, 10)}</TableCell>
-                <TableCell className="text-slate-600">{new Date(user.createdAt as number).toISOString().slice(0, 10)}</TableCell>
+                <TableCell className="text-slate-600">{new Date(user.updatedAt as string).toISOString().slice(0, 10)}</TableCell>
+                <TableCell className="text-slate-600">{new Date(user.createdAt as string).toISOString().slice(0, 10)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Dialog open={!!editingUser} onOpenChange={(open) => { if (!open) setEditingUser(null) }}>
@@ -225,7 +227,7 @@ export default function UsersPage() {
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>
-                            {"Are you sure you want to delete this user?"}
+                            {t.confirmDeleteUser || "Are you sure you want to delete this user?"}
                           </AlertDialogTitle>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -296,7 +298,7 @@ function UserForm({ user, onClose, fetchUsers, t, roles }: UserFormProps) {
           last_name: name.split(" ")[1],
           email,
           role_id: roles.find((r) => r.name === role)?._id || user.role_id,
-          status: status.toLowerCase() as "active" | "inactive",
+          status: status.toLowerCase() as "active" | "inactive"
         }).then(() => {
           toast({
             title: t.userUpdated ?? "User updated",
@@ -318,6 +320,7 @@ function UserForm({ user, onClose, fetchUsers, t, roles }: UserFormProps) {
           email,
           password,
           role_id: roles.find((r) => r.name === role)?._id || "",
+          image_id: "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png"
         }).then(() => {
           toast({
             title: t.userCreated ?? "User created",
@@ -415,6 +418,7 @@ function PermissionMatrix({ onClose, t, roles }: PermissionMatrixProps) {
   const [saving, setSaving] = useState(false)
   const [matrix, setMatrix] = useState<Record<string, Record<string, boolean>>>({})
   const { toast } = useToast()
+  const { theme } = useTheme()
 
   useEffect(() => {
     if (!roleId && roles.length > 0) setRoleId(roles[0]._id as string)
@@ -481,6 +485,10 @@ function PermissionMatrix({ onClose, t, roles }: PermissionMatrixProps) {
     } else {
       toast({ title: t.error ?? "Error", description: t.saveFailed ?? "Failed to save permissions.", variant: "destructive" })
     }
+  }
+
+  if (loading) {
+    return <Loading theme={theme ?? "dark"} />
   }
 
   return (

@@ -10,7 +10,8 @@ export async function createUser(data: {
   last_name: string,
   email: string,
   password: string,
-  role_id: string
+  role_id: string,
+  image_id?: string
 }) {
   await DBConnect()
   const password_hash = await bcrypt.hash(data.password, 10);
@@ -40,8 +41,7 @@ export async function list() {
 
 export async function updateUser(id: string, data: Partial<IUser>) {
   await DBConnect()
-  const user = await
-  User.findById(id);
+  const user = await User.findById(id);
   if (!user) throw new Error("User not found");
   Object.assign(user, data);
   return autoSerialize(await user.save()) as IUser;
@@ -55,3 +55,5 @@ export async function removeUser(id: string) {
   }
   return { success: true, message: "User deleted successfully" };
 }
+
+

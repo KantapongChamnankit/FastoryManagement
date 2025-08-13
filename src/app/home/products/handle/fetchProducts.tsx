@@ -8,8 +8,10 @@ export async function fetchProducts(setLoading: (loading: boolean) => void, setP
         setLoading(true)
         const data = await ProductService.list({})
         setProducts(data as IProduct[])
+        return true;
     } catch (error) {
         console.error("Error fetching products:", error)
+        return false;
     } finally {
         setLoading(false)
     }

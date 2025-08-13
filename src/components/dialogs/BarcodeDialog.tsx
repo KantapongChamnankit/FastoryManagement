@@ -3,6 +3,8 @@
 import type React from "react"
 
 import { use, useEffect, useState } from "react"
+import { useLanguage } from "@/contexts"
+import { translations } from "@/lib/utils/Language"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,6 +16,7 @@ import * as ProductService from "@/lib/services/ProductService"
 import * as CategoryService from "@/lib/services/CategoryService"
 import * as StockLocationService from "@/lib/services/StockLocationService"
 import { ICategory, IProduct, IStockLocation } from "@/lib"
+import { usePermissions } from "@/hooks/use-permissions"
 
 interface Product {
     _id?: string
@@ -40,6 +43,8 @@ interface BarcodeScannerModalProps {
 }
 
 export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchProducts }: BarcodeScannerModalProps) {
+    const { lang } = useLanguage()
+    const t = translations[lang] || translations.en
     const [barcode, setBarcode] = useState("")
     const [cart, setCart] = useState<CartItem[]>([])
     const [newProduct, setNewProduct] = useState<Partial<Product> | null>(null)
@@ -47,6 +52,7 @@ export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchPro
     const [categories, setCategories] = useState<ICategory[]>([])
     const [locks, setLocks] = useState<(IStockLocation & { currentStock: number })[]>([])
     const { toast } = useToast()
+    const { isAdmin, isStaff } = usePermissions()
 
     useEffect(() => {
         if (barcode.trim() && barcode.length >= 8) {
@@ -84,7 +90,15 @@ export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchPro
                     }
                     setBarcode("")
                 } else {
-                    setNewProduct({ barcode })
+                    if (isAdmin()) {
+                        setNewProduct({ barcode })
+                    } else {
+                        toast({
+                            title: t.productNotFound || "Product Not Found",
+                            description: t.pleaseCheckBarcode || "Please check the barcode.",
+                            variant: "destructive",
+                        })
+                    }
                     setBarcode("")
                 }
             })
@@ -106,8 +120,8 @@ export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchPro
     const handleConfirm = () => {
         if (cart.length === 0 && !newProduct) {
             toast({
-                title: "Empty cart",
-                description: "Please add items to cart first",
+                title: t.emptyCart || "Empty cart",
+                description: t.pleaseAddItemsToCart || "Please add items to cart first",
                 variant: "destructive",
             })
             return
@@ -149,17 +163,17 @@ export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchPro
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>{mode === "add" ? "Add Products to Inventory" : "Scan Products to Sell"}</DialogTitle>
+                    <DialogTitle>{mode === "add" ? (t.addProductsToInventory || "Add Products to Inventory") : (t.scanProductsToSell || "Scan Products to Sell")}</DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-6">
                     {/* Barcode Scanner */}
                     <div className="space-y-4">
-                        <Label htmlFor="barcode">Scan or Enter Barcode</Label>
+                        <Label htmlFor="barcode">{t.barcodeInputLabel || "Scan or Enter Barcode"}</Label>
                         <div className="flex gap-2">
                             <Input
                                 id="barcode"
-                                placeholder="Scan or enter barcode"
+                                placeholder={t.barcodeInputPlaceholder || "Scan or enter barcode"}
                                 value={barcode}
                                 onChange={(e) => {
                                     setBarcode(e.target.value)
@@ -218,10 +232,10 @@ export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchPro
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="font-semibold">
-                                    {mode === "add" ? "Products to Add" : "Items to Sell"} ({getTotalItems()} items)
+                                    {mode === "add" ? (t.productsToAdd || "Products to Add") : (t.itemsToSell || "Items to Sell")} ({getTotalItems()} {t.itemsCount || "items"})
                                 </h3>
                                 {mode === "sell" && (
-                                    <div className="text-lg font-bold text-orange-600">Total: ${getTotalValue().toFixed(2)}</div>
+                                    <div className="text-lg font-bold text-orange-600">{t.totalAmount || "Total"}: ${getTotalValue().toFixed(2)}</div>
                                 )}
                             </div>
 
@@ -236,7 +250,7 @@ export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchPro
                                             <p className="text-sm text-slate-500 dark:text-gray-400">
                                                 {item.barcode} • ${item.unitPrice}
                                                 {mode === "sell" && item.quantity < item.cartQuantity && (
-                                                    <span className="text-red-500 ml-2">(Only {item.quantity} available)</span>
+                                                    <span className="text-red-500 ml-2">({t.onlyQuantityAvailable || "Only"} {item.quantity} {t.quantityAvailable || "available"})</span>
                                                 )}
                                             </p>
                                         </div>
@@ -284,11 +298,11 @@ export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchPro
                     {/* Action Buttons */}
                     <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-gray-700">
                         <Button variant="outline" onClick={onClose}>
-                            Cancel
+                            {t.cancel || "Cancel"}
                         </Button>
                         {cart.length > 0 && (
                             <Button onClick={handleConfirm} className="bg-orange-600 hover:bg-orange-700">
-                                {mode === "add" ? "Add to Inventory" : "Confirm Sale"}
+                                {mode === "add" ? (t.addToInventory || "Add to Inventory") : (t.confirmSale || "Confirm Sale")}
                             </Button>
                         )}
                     </div>

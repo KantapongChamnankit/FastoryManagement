@@ -24,7 +24,17 @@ export  async function list() {
 
 export async function findById(id: string) {
   DBConnect();
-  return autoSerialize(await Role.findById(id));
+  if (!id) {
+    throw new Error("Role ID is required");
+  }
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new Error("Invalid Role ID");
+  }
+  const role = await Role.findById(id);
+  if (!role) {
+    throw new Error("Role not found");
+  }
+  return autoSerialize(role);
 }
 
 export async function create(role: IRole) {
@@ -33,11 +43,19 @@ export async function create(role: IRole) {
   return autoSerialize(newRole);
 }
 
+import mongoose from "mongoose";
+
 export async function update(id: string, role: IRole) {
   DBConnect();
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new Error("Invalid Role ID");
+  }
   const updatedRole = await Role.findByIdAndUpdate(id, role, {
     new: true,
   });
+  if (!updatedRole) {
+    throw new Error("Role not found");
+  }
   return autoSerialize(updatedRole);
 }
 export async function remove(id: string) {
