@@ -28,12 +28,7 @@ import { FileText, Download, Calendar, TrendingUp, DollarSign, Package, Shopping
 import ChartLoader from '@/components/ChartLoader'
 import { useLanguage } from "@/contexts"
 import { translations } from "@/lib/utils/Language"
-import * as TransactionService from "@/lib/services/TransactionService"
 import { ICategory, IProduct, ITransaction } from "@/lib"
-import * as ProductService from "@/lib/services/ProductService"
-import * as CategoryService from "@/lib/services/CategoryService"
-import * as StockLocationService from "@/lib/services/StockLocationService"
-import * as SettingService from "@/lib/services/SettingService"
 
 // Helper to format currency (THB)
 const formatCurrency = (value: number) => {
@@ -139,28 +134,36 @@ export default function ReportsPage() {
   const t = translations[lang]
 
   useEffect(() => {
-    // Initial parallel fetches
-    ProductService.list({}).then(setProducts).catch(console.error)
-    CategoryService.list().then(setCategories).catch(console.error)
-    StockLocationService.list().then(setStockLocations).catch(console.error)
-    SettingService.getSettings().then(s => {
-      if (s?.lowStockThreshold !== undefined && s.lowStockThreshold !== null) {
-        setLowStockThreshold(s.lowStockThreshold)
-      } else {
-        setLowStockThreshold(10) // fallback default
+    // Fetch aggregated summary in one call
+    const controller = new AbortController()
+    const load = async () => {
+      try {
+        setLoading(true)
+        const res = await fetch(`/api/reports/summary?dateRange=${dateRange}`, { signal: controller.signal, cache: 'no-store' })
+        if (!res.ok) throw new Error('Failed summary fetch')
+        const { products, categories, stockLocations, settings, salesTrend } = await res.json()
+        setProducts(products || [])
+        setCategories(categories || [])
+        setStockLocations(stockLocations || [])
+        const threshold = (settings?.lowStockThreshold ?? 10)
+        setLowStockThreshold(typeof threshold === 'number' ? threshold : 10)
+        // Stage transactions into data for downstream processing
+        setData(prev => ({ ...prev, salesTrend }))
+      } catch (e) {
+        console.error('summary load error', e)
+      } finally {
+        setLoading(false)
       }
-    }).catch(err => {
-      console.error('Failed to load settings:', err)
-      setLowStockThreshold(10)
-    })
-  }, [])
+    }
+    load()
+    return () => controller.abort()
+  }, [dateRange])
 
   useEffect(() => {
     async function load() {
       setLoading(true)
       try {
-        const transactions = await TransactionService.list()
-        const sale = transactions.filter((t: ITransaction) => {
+  const sale = (data.salesTrend || []).filter((t: ITransaction) => {
           if (dateRange === "last-7-days") {
             return new Date(t.created_at as number) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
           } else if (dateRange === "last-30-days") {
@@ -217,15 +220,11 @@ export default function ReportsPage() {
           ? ((totalProfitAmount / revenueForMargin) * 100).toFixed(2)
           : 0
 
-        // Fetch low stock products using settings threshold (fallback 10)
+        // Compute low stock products locally using settings threshold (fallback 10)
         const threshold = lowStockThreshold ?? 10
-        let lowStockItems = 0
-        try {
-          const lowList = await ProductService.getLowStock(threshold)
-          lowStockItems = Array.isArray(lowList) ? lowList.length : 0
-        } catch (e) {
-          console.error('Failed to fetch low stock products', e)
-        }
+        const lowStockItems = Array.isArray(products)
+          ? products.filter((p: IProduct) => typeof p.quantity === 'number' && p.quantity <= threshold).length
+          : 0
 
         const keyMetrics = {
           totalSales: totalSalesAmount,

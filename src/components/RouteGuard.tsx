@@ -32,7 +32,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
     }, [pathname, checkRouteAccess, userRole, router]);
 
     if (isLoading) {
-        return <LoadingScreen onLoadingComplete={() => setIsLoading(false)} />;
+        return <LoadingScreen onLoadingComplete={() => setIsLoading(false)} complete={!isLoading} />;
     }
 
     return <>{children}</>;

@@ -1,14 +1,15 @@
-"use client"
+// /c:/Users/KisuX3/Documents/FastoryManagement/src/utils/loadingManager.ts
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import { useTheme } from "next-themes"
 
 interface LoadingScreenProps {
-  onLoadingComplete: () => void
+  onLoadingComplete: () => void,
+  complete?: boolean,
 }
 
-export function LoadingScreen({ onLoadingComplete }: LoadingScreenProps) {
+export function LoadingScreen({ onLoadingComplete, complete, }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0)
   const { theme } = useTheme()
 
@@ -22,13 +23,13 @@ export function LoadingScreen({ onLoadingComplete }: LoadingScreenProps) {
         }
         return prev + 2
       })
-    }, 20)
+    }, complete ? 5 : 40)
 
     return () => clearInterval(interval)
   }, [onLoadingComplete])
 
   return (
-    <div className="fixed inset-0 bg-white flex items-center justify-center z-50 dark:bg-[#121212] dark:border-[#333333]">
+    <div className="fixed inset-0 bg-white flex items-center justify-center z-[2147483647] dark:bg-[#121212] dark:border-[#333333]">
       <div className="text-center space-y-8">
         {/* Logo with opacity animation */}
         <div className="relative">
