@@ -7,7 +7,14 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
 import { Toaster } from "@/components/ui/toaster"
 import { LoadingScreen } from "@/components/LoadingScreen"
-import { Chatbot } from "@/components/Chatbot"
+import dynamic from "next/dynamic"
+const Chatbot = dynamic(async () => {
+  const mod = await import("@/components/Chatbot")
+  return (mod as any).Chatbot ?? mod as any
+}, {
+  ssr: false,
+  loading: () => <div className="py-6 text-center text-slate-400 text-xs">Loading assistant…</div>
+})
 import { RouteGuard } from "@/components/RouteGuard"
 import { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "./ui/breadcrumb"
 import { usePathname } from "next/navigation"
@@ -209,9 +216,10 @@ const ClientLayout = React.memo(function ClientLayout({
 
   return (
     <>
-      {isLoading ? (
-        <LoadingScreen onLoadingComplete={() => setIsLoading(false)} />
-      ) : (
+      {
+        isLoading && <LoadingScreen onLoadingComplete={() => setIsLoading(false)} complete={false} />
+      }
+      <div className="">
         <RouteGuard>
           <SidebarProvider
             defaultOpen={true}
@@ -282,10 +290,10 @@ const ClientLayout = React.memo(function ClientLayout({
                     >
                       {lang === "en" ? "TH" : "EN"}
                     </Button>
-                    
+
                     {/* Theme Toggle */}
                     <ThemeToggle />
-                    
+
                     {/* Notification Bell */}
                     <div>
                       <Popover>
@@ -474,7 +482,7 @@ const ClientLayout = React.memo(function ClientLayout({
             </div>
           </SidebarProvider>
         </RouteGuard>
-      )}
+      </div>
       <Toaster />
       <Chatbot />
     </>

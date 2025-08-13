@@ -53,8 +53,20 @@ export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchPro
     const [locks, setLocks] = useState<(IStockLocation & { currentStock: number })[]>([])
     const { toast } = useToast()
     const { isAdmin, isStaff } = usePermissions()
+    const [product, setProduct] = useState<IProduct[]>([])
 
     useEffect(() => {
+        ProductService.list()
+            .then((products) => {
+                setProduct(products)
+            })
+    }, [])
+
+    useEffect(() => {
+        ProductService.list().then((products) => {
+            setProduct(products)
+        })
+
         if (barcode.trim() && barcode.length >= 8) {
             handleBarcodeSubmit()
         }
@@ -64,44 +76,43 @@ export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchPro
         if (!barcode.trim()) return
 
         setIsScanning(true)
-        ProductService.findByBarcode(barcode)
-            .then((product) => {
-                setIsScanning(false)
-                if (product) {
-                    const existingItem = cart.find((item) => item.barcode === product.barcode)
-                    if (existingItem) {
-                        updateCartQuantity(product.barcode, existingItem.cartQuantity + 1)
-                    } else {
-                        setCart([
-                            ...cart,
-                            {
-                                _id: product._id,
-                                name: product.name,
-                                barcode: product.barcode,
-                                category: (product as any).category ?? (product as any).category_id ?? "",
-                                lock: (product as any).lock ?? (product as any).stock_location_id ?? "",
-                                quantity: product.quantity,
-                                unitPrice: (product as any).unitPrice ?? (product as any).price ?? 0,
-                                lotCost: (product as any).lotCost ?? (product as any).cost ?? 0,
-                                image: product.image_id ?? (product as any).image_id,
-                                cartQuantity: 1,
-                            }
-                        ])
+        const foundProduct = product.find(x => x.barcode === barcode)
+        setIsScanning(false)
+        if (foundProduct) {
+            const existingItem = cart.find((item) => item.barcode === foundProduct.barcode)
+            if (existingItem) {
+                updateCartQuantity(foundProduct.barcode, existingItem.cartQuantity + 1)
+                setBarcode("")
+            } else {
+                setCart([
+                    ...cart,
+                    {
+                        _id: foundProduct._id,
+                        name: foundProduct.name,
+                        barcode: foundProduct.barcode,
+                        category: (foundProduct as any).category ?? (foundProduct as any).category_id ?? "",
+                        lock: (foundProduct as any).lock ?? (foundProduct as any).stock_location_id ?? "",
+                        quantity: foundProduct.quantity,
+                        unitPrice: (foundProduct as any).unitPrice ?? (foundProduct as any).price ?? 0,
+                        lotCost: (foundProduct as any).lotCost ?? (foundProduct as any).cost ?? 0,
+                        image: foundProduct.image_id ?? (foundProduct as any).image_id,
+                        cartQuantity: 1,
                     }
-                    setBarcode("")
-                } else {
-                    if (isAdmin()) {
-                        setNewProduct({ barcode })
-                    } else {
-                        toast({
-                            title: t.productNotFound || "Product Not Found",
-                            description: t.pleaseCheckBarcode || "Please check the barcode.",
-                            variant: "destructive",
-                        })
-                    }
-                    setBarcode("")
-                }
-            })
+                ])
+                setBarcode("")
+            }
+        } else {
+            if (isAdmin()) {
+                setNewProduct({ barcode })
+            } else {
+                toast({
+                    title: t.productNotFound || "Product Not Found",
+                    description: t.pleaseCheckBarcode || "Please check the barcode.",
+                    variant: "destructive",
+                })
+            }
+            setBarcode("")
+        }
     }
 
     const updateCartQuantity = (barcode: string, newQuantity: number) => {

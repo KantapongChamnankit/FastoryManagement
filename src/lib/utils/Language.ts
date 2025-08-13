@@ -728,5 +728,6 @@ export const translations = {
         categoryDistribution: "การกระจายหมวดหมู่",
         over: "เกิน",
         more: "เพิ่มเติม",
+        unread: "ยังไม่ได้อ่าน"
     }
 }
