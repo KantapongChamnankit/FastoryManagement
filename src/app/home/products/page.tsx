@@ -44,7 +44,9 @@ export default function ProductsPage() {
   const [isScannerOpen, setIsScannerOpen] = useState(false)
   const [products, setProducts] = useState<IProduct[]>([])
   const [loading, setLoading] = useState(true)
-  const [viewMode, setViewMode] = useState<"grid" | "table">("table")
+  const [viewMode, setViewMode] = useState<"grid" | "table">(
+    typeof window !== 'undefined' && window.innerWidth < 640 ? 'grid' : 'table'
+  )
   const [searchTerm, setSearchTerm] = useState("")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isSellDialogOpen, setIsSellDialogOpen] = useState(false)
@@ -152,10 +154,101 @@ export default function ProductsPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">{t.productManagement}</h1>
-          <p className="text-slate-600">{t.manageInventory}</p>
+      <div className="">
+        <div className="flex items-center justify-between w-full mb-5">
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">{t.productManagement}</h1>
+            <p className="text-slate-600">{t.manageInventory}</p>
+          </div>
+          {isAdmin() ? (
+            <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE}>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsScannerOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                {t.addProduct}
+              </Button>
+            </PermissionGate>
+          ) : (
+            <PermissionGate permission={PERMISSIONS.PRODUCTS_UPDATE_STOCK}>
+              <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE} fallback={
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsScannerOpen(true)}>
+                  <Package className="h-4 w-4 mr-2" />
+                  {(t as any).addStock || "Add Stock"}
+                </Button>
+              }>
+                <></>
+              </PermissionGate>
+            </PermissionGate>
+          )}
+        </div>
+        <div className="flex-col">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 w-full">
+              <div className="relative w-full sm:w-auto">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                <Input
+                  placeholder={t.searchProducts}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-full sm:w-80"
+                />
+              </div>
+              {/* Filter Dropdown */}
+              <div className="flex gap-3 sm:gap-4 w-full sm:w-auto">
+                <Select
+                  value={selectedCategoryFilter}
+                  onValueChange={setSelectedCategoryFilter}
+                >
+                  <SelectTrigger className="w-full sm:w-40">
+                    <SelectValue placeholder={t.category} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t.category}</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat._id} value={cat.name}>
+                        <ShoppingBag className="h-4 w-4 inline mr-2 translate-y-[-2px]" />
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={selectedLockFilter}
+                  onValueChange={setSelectedLockFilter}
+                >
+                  <SelectTrigger className="w-full sm:w-40">
+                    <SelectValue placeholder={t.storageLock} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t.storageLock}</SelectItem>
+                    {locks.map((lock) => (
+                      <SelectItem key={lock._id} value={lock.name}>
+                        <LockIcon className="h-4 w-4 inline mr-2 translate-y-[-2px]" />
+                        {lock.name} ({lock.currentStock})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <Button
+                variant={viewMode === "table" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("table")}
+                className="px-3"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === "grid" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("grid")}
+                className="px-3"
+              >
+                <Grid3X3 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
         {/* <AddProductDialog
           onClose={() => setIsScannerOpen(false)}
@@ -165,94 +258,9 @@ export default function ProductsPage() {
           categories={categories}
           locks={locks}
         /> */}
-        {isAdmin() ? (
-          <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE}>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsScannerOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              {t.addProduct}
-            </Button>
-          </PermissionGate>
-        ) : (
-          <PermissionGate permission={PERMISSIONS.PRODUCTS_UPDATE_STOCK}>
-            <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE} fallback={
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsScannerOpen(true)}>
-                <Package className="h-4 w-4 mr-2" />
-                {(t as any).addStock || "Add Stock"}
-              </Button>
-            }>
-              <></>
-            </PermissionGate>
-          </PermissionGate>
-        )}
       </div>
 
       {/* Controls */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-            <Input
-              placeholder={t.searchProducts}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-80"
-            />
-          </div>
-          {/* Filter Dropdown */}
-          <Select
-            value={selectedCategoryFilter}
-            onValueChange={setSelectedCategoryFilter}
-          >
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder={t.category} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t.category}</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat._id} value={cat.name}>
-                  <ShoppingBag className="h-4 w-4 inline mr-2 translate-y-[-2px]" />
-                  {cat.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={selectedLockFilter}
-            onValueChange={setSelectedLockFilter}
-          >
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder={t.storageLock} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t.storageLock}</SelectItem>
-              {locks.map((lock) => (
-                <SelectItem key={lock._id} value={lock.name}>
-                  <LockIcon className="h-4 w-4 inline mr-2 translate-y-[-2px]" />
-                  {lock.name} ({lock.currentStock})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={viewMode === "table" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("table")}
-            className="px-3"
-          >
-            <List className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={viewMode === "grid" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setViewMode("grid")}
-            className="px-3"
-          >
-            <Grid3X3 className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
 
       {loading ? (
         <Loading theme={theme ?? "dark"} />
@@ -264,14 +272,14 @@ export default function ProductsPage() {
               <br></br>
               <p className="text-lg text-slate-500 mb-4">{(t as any)?.noProductsFound || "No products found. Let's create one!"}</p>
               <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE}>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white text-white" onClick={() => setIsScannerOpen(true)}>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsScannerOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   {t.addProduct}
                 </Button>
               </PermissionGate>
               <PermissionGate permission={PERMISSIONS.PRODUCTS_UPDATE_STOCK}>
                 <PermissionGate permission={PERMISSIONS.PRODUCTS_CREATE} fallback={
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white text-white" onClick={() => setIsScannerOpen(true)}>
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => setIsScannerOpen(true)}>
                     <Package className="h-4 w-4 mr-2" />
                     {(t as any).addStock || "Add Stock"}
                   </Button>

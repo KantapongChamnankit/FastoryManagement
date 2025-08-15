@@ -1,4 +1,4 @@
-// /c:/Users/KisuX3/Documents/FastoryManagement/src/utils/loadingManager.ts
+"use client"
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
@@ -12,6 +12,7 @@ interface LoadingScreenProps {
 export function LoadingScreen({ onLoadingComplete, complete, }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0)
   const { theme } = useTheme()
+  console.log("LoadingScreen rendered with theme:", theme)
 
   useEffect(() => {
     const interval = setInterval(() => {

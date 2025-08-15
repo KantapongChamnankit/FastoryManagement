@@ -93,6 +93,7 @@ export default function SettingsPage() {
                     setEnableLowStockAlerts(serverSettings.enableLowStockAlerts);
                     setEnableEmailNotifications(serverSettings.enableEmailNotifications);
                     setEnablePushNotifications(serverSettings.enablePushNotifications);
+                    setPromptPayPhone(serverSettings.promptPayPhone || "00000000000");
                 }
             } catch (error) {
                 console.error("Error fetching settings:", error);
@@ -103,6 +104,7 @@ export default function SettingsPage() {
                 setEnableLowStockAlerts(defaultSettings.enableLowStockAlerts);
                 setEnableEmailNotifications(defaultSettings.enableEmailNotifications);
                 setEnablePushNotifications(defaultSettings.enablePushNotifications);
+                setPromptPayPhone(defaultSettings.promptPayPhone || "00000000000");
             }
             setLoading(false);
         };
@@ -114,25 +116,19 @@ export default function SettingsPage() {
     const [enableLowStockAlerts, setEnableLowStockAlerts] = useState(true)
     const [enableEmailNotifications, setEnableEmailNotifications] = useState(true)
     const [enablePushNotifications, setEnablePushNotifications] = useState(false)
+    const [promptPayPhone, setPromptPayPhone] = useState("00000000000")
 
     const handleSaveSettings = async () => {
         const newSettings: ISettings = {
             lowStockThreshold,
             enableLowStockAlerts,
             enableEmailNotifications,
-            enablePushNotifications
+            enablePushNotifications,
+            promptPayPhone
         };
 
-        updateSettings(newSettings);
-
-        // Also try to save to server if available
         try {
-            await updateSettings({
-                lowStockThreshold,
-                enableLowStockAlerts,
-                enableEmailNotifications,
-                enablePushNotifications
-            });
+            await updateSettings(newSettings);
         } catch (error) {
             console.error("Error saving server settings:", error);
         }
@@ -332,6 +328,31 @@ export default function SettingsPage() {
 
                 {isAdmin() ? (
                     <>
+                        {/* Payment Settings */}
+                        <Card>
+                            <CardHeader className="flex flex-row items-center space-y-0 pb-4">
+                                <div className="flex items-center space-x-2">
+                                    <Package className="h-5 w-5 text-green-600" />
+                                    <CardTitle className="text-lg">{(t as any).paymentSettings || "Payment Settings"}</CardTitle>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <CardDescription>
+                                    {(t as any).paymentSettingsDesc || "Configure default payment options for checkout."}
+                                </CardDescription>
+                                <div className="space-y-2 max-w-sm">
+                                    <Label htmlFor="promptpay-phone">{(t as any).promptPayPhone || "PromptPay Phone"}</Label>
+                                    <Input
+                                        id="promptpay-phone"
+                                        placeholder="08x-xxx-xxxx"
+                                        value={promptPayPhone}
+                                        onChange={(e)=> setPromptPayPhone(e.target.value)}
+                                    />
+                                    <p className="text-xs text-slate-500">{(t as any).promptPayPhoneDesc || "Used to auto-generate PromptPay QR on checkout."}</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+
                         <Card>
                             <CardHeader className="flex flex-row items-center space-y-0 pb-4">
                                 <div className="flex items-center space-x-2">

@@ -14,5 +14,5 @@ export default function Home() {
     } else if (status === "authenticated") {
       router.push("/home/dashboard")
     }
-  }, [status])
+  }, [status, router, session])
 }

@@ -69,138 +69,138 @@ export default function CategoriesPage() {
 
   return (
     loading ? <Loading theme={theme ?? "dark"} /> :
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">{t.categories}</h1>
-          <p className="text-slate-600">{t.organizeCategories}</p>
-        </div>
-        <AddCategoryDialog
-          fetchCategories={fetchCategories}
-          isAddDialogOpen={isAddDialogOpen}
-          setIsAddDialogOpen={setIsAddDialogOpen}
-        />
-      </div>
-
-      {/* Search */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-          <Input
-            placeholder={t.search + " " + t.categories + "..."}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">{t.categories}</h1>
+            <p className="text-slate-600">{t.organizeCategories}</p>
+          </div>
+          <AddCategoryDialog
+            fetchCategories={fetchCategories}
+            isAddDialogOpen={isAddDialogOpen}
+            setIsAddDialogOpen={setIsAddDialogOpen}
           />
         </div>
-      </div>
 
-      {/* Categories Table */}
-      <Card className="border border-slate-200 shadow-sm">
-        {filteredCategories.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <ShoppingBag className="h-10 w-10 text-slate-400 mb-4" />
-            <span className="text-slate-500 mb-4">{(t as any).notHaveCategory || "No categories found. You can create one!"}</span>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              {t.addCategory || "Add Category"}
-            </Button>
+        {/* Search */}
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+            <Input
+              placeholder={t.search + " " + t.categories + "..."}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow className="border-b border-slate-200">
-          <TableHead className="font-semibold text-slate-700">{t.categoryName}</TableHead>
-          <TableHead className="font-semibold text-slate-700">{t.description}</TableHead>
-          <TableHead className="font-semibold text-slate-700">{t.products}</TableHead>
-          <TableHead className="font-semibold text-slate-700">{t.actions}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCategories.map((category) => (
-          <TableRow key={category._id} className="border-b border-slate-100 hover:bg-slate-50">
-            <TableCell>
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center bg-blue-100 text-blue-600">
-            <Tags className="h-4 w-4" />
-                </div>
-                <span className="font-medium text-slate-900">{category.name}</span>
-              </div>
-            </TableCell>
-            <TableCell className="text-slate-600">{category.description}</TableCell>
-            <TableCell className="text-slate-600">{products.filter((x) => x.category_id as string === category._id).length} {t.products}</TableCell>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                {/* Edit Dialog */}
-                <Dialog open={editingCategory?._id === category._id} onOpenChange={open => setEditingCategory(open ? category : null)}>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => setEditingCategory(category)}>
-                <Edit className="h-3 w-3" />
+        </div>
+
+        {/* Categories Table */}
+        <Card className="border border-slate-200 shadow-sm">
+          {filteredCategories.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <ShoppingBag className="h-10 w-10 text-slate-400 mb-4" />
+              <span className="text-slate-500 mb-4">{(t as any).notHaveCategory || "No categories found. You can create one!"}</span>
+              <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                {t.addCategory || "Add Category"}
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{t.editCategory}</DialogTitle>
-              </DialogHeader>
-              <CategoryForm
-                category={category}
-                onClose={() => setEditingCategory(null)}
-                fetchCategories={fetchCategories}
-                t={t}
-              />
-            </DialogContent>
-                </Dialog>
-                {/* Delete Button with Confirm Dialog */}
-                <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                onClick={() => setDeleteCategoryId(category._id as string)}
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  {t.confirmDeleteCategory || "Are you sure you want to delete this category?"}
-                </AlertDialogTitle>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setDeleteCategoryId(null)}>
-                  {t.cancel || "Cancel"}
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={async () => {
-              if (!deleteCategoryId) return;
-              ProductService.list({ category_id: deleteCategoryId }).then(products => {
-                if (products.length > 0) {
-                  products.forEach(product => {
-                    ProductService.remove(product._id as string, user as IUser);
-                  });
-                  return;
-                }
-              });
-              await handleDelete(category._id as string, toast, fetchCategories, user as IUser);
-              setDeleteCategoryId(null);
-                  }}
-                >
-                  {t.delete || "Delete"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </TableCell>
-          </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </Card>
-    </div>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-slate-200">
+                  <TableHead className="font-semibold text-slate-700">{t.categoryName}</TableHead>
+                  <TableHead className="font-semibold text-slate-700">{t.description}</TableHead>
+                  <TableHead className="font-semibold text-slate-700">{t.products}</TableHead>
+                  <TableHead className="font-semibold text-slate-700">{t.actions}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredCategories.map((category) => (
+                  <TableRow key={category._id} className="border-b border-slate-100 hover:bg-slate-50">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center bg-blue-100 text-blue-600">
+                          <Tags className="h-4 w-4" />
+                        </div>
+                        <span className="font-medium text-slate-900">{category.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-slate-600">{category.description}</TableCell>
+                    <TableCell className="text-slate-600">{products.filter((x) => x.category_id as string === category._id).length} {t.products}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {/* Edit Dialog */}
+                        <Dialog open={editingCategory?._id === category._id} onOpenChange={open => setEditingCategory(open ? category : null)}>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={() => setEditingCategory(category)}>
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>{t.editCategory}</DialogTitle>
+                            </DialogHeader>
+                            <CategoryForm
+                              category={category}
+                              onClose={() => setEditingCategory(null)}
+                              fetchCategories={fetchCategories}
+                              t={t}
+                            />
+                          </DialogContent>
+                        </Dialog>
+                        {/* Delete Button with Confirm Dialog */}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                              onClick={() => setDeleteCategoryId(category._id as string)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {t.confirmDeleteCategory || "Are you sure you want to delete this category?"}
+                              </AlertDialogTitle>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel onClick={() => setDeleteCategoryId(null)}>
+                                {t.cancel || "Cancel"}
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={async () => {
+                                  if (!deleteCategoryId) return;
+                                  ProductService.list({ category_id: deleteCategoryId }).then(products => {
+                                    if (products.length > 0) {
+                                      products.forEach(product => {
+                                        ProductService.remove(product._id as string, user as IUser);
+                                      });
+                                      return;
+                                    }
+                                  });
+                                  await handleDelete(category._id as string, toast, fetchCategories, user as IUser);
+                                  setDeleteCategoryId(null);
+                                }}
+                              >
+                                {t.delete || "Delete"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </Card>
+      </div>
   )
 }

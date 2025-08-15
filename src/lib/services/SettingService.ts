@@ -11,27 +11,47 @@ import { ROLE_PERMISSIONS } from "../permissions";
 
 
 export async function getSettings() {
-    const settings: ISettings | null = await Settings.findOne();
-    return settings ? autoSerialize(settings) as ISettings : null;
+    const doc = await Settings.findOne();
+    if (!doc) {
+        const created = await Settings.create({});
+        return autoSerialize(created) as ISettings;
+    }
+    // Backfill missing field on old documents
+    if (typeof (doc as any).promptPayPhone === 'undefined') {
+        (doc as any).promptPayPhone = "00000000000";
+        await doc.save();
+    }
+    return autoSerialize(doc) as ISettings;
 }
 
 export async function updateSettings(updatedSettings: ISettings) {
-    const settings = await Settings.findOneAndUpdate({}, updatedSettings, { new: true });
-    return settings ? autoSerialize(settings) as ISettings : null;
+    let settingsDoc = await Settings.findOne();
+    if (!settingsDoc) {
+        settingsDoc = await Settings.create({ ...updatedSettings });
+    } else {
+        Object.assign(settingsDoc, updatedSettings);
+        await settingsDoc.save();
+    }
+    return autoSerialize(settingsDoc) as ISettings;
 }
 
 export async function resetSettings() {
-    const settings = await Settings.findOneAndUpdate({}, {
+    const defaults = {
         lowStockThreshold: 10,
         enableLowStockAlerts: true,
         enableEmailNotifications: true,
-        enablePushNotifications: false
-    }, { new: true });
-    return settings ? autoSerialize(settings) : null;
+        enablePushNotifications: false,
+        promptPayPhone: "00000000000"
+    };
+    await Settings.updateMany({}, { $set: defaults });
+    const existing = await Settings.findOne();
+    if (existing) return autoSerialize(existing);
+    const created = await Settings.create(defaults);
+    return autoSerialize(created);
 }
 
 export async function createSettings(settings: ISettings) {
-    const newSettings = new Settings(settings);
+    const newSettings = new Settings({ ...settings });
     await newSettings.save();
     return autoSerialize(newSettings);
 }

@@ -11,7 +11,12 @@ export const TransactionSchema = new Schema({
   total_cost: { type: Number, required: true },
   profit: { type: Number, required: true },
   created_at: { type: Date, default: Date.now },
-  user_id: { type: Schema.Types.ObjectId, ref: "User" }
+  user_id: { type: Schema.Types.ObjectId, ref: "User" },
+  payment_method: { type: String, enum: ["QR", "CASH"], default: undefined },
+  discount: { type: Number, default: 0 },
+  cash_received: { type: Number, default: undefined },
+  change: { type: Number, default: undefined },
+  qr_payload: { type: String, default: undefined }
 });
 
 export const Transaction = mongoose.models?.Transaction || mongoose.model('Transaction', TransactionSchema);
