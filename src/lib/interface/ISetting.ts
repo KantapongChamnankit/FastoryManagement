@@ -3,4 +3,5 @@ export interface ISettings {
   enableLowStockAlerts: boolean;
   enableEmailNotifications: boolean;
   enablePushNotifications: boolean;
+  promptPayPhone: string;
 }

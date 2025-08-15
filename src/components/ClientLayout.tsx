@@ -171,6 +171,21 @@ const ClientLayout = React.memo(function ClientLayout({
     window.dispatchEvent(new CustomEvent('notification-sent'));
   }, [])
 
+  // Delete all notifications
+  const clearAllNotifications = useCallback(async () => {
+    if (status !== "authenticated" || !(session?.user as any)?.id) return;
+    const confirmMsg = (t as any).confirmDeleteAll || t.confirmDelete || 'Delete all notifications? This cannot be undone.';
+    // Confirm on client
+    if (typeof window !== 'undefined' && !window.confirm(confirmMsg)) return;
+    try {
+      await NotificationService.deleteAllNotifications((session?.user as any)?.id as string)
+      setNotification([])
+      window.dispatchEvent(new CustomEvent('notification-sent'))
+    } catch (err) {
+      console.error('Failed to delete all notifications:', err)
+    }
+  }, [session?.user, status, t])
+
   // Optimized welcome toast effect
   useEffect(() => {
     if (status === "authenticated" &&
@@ -314,16 +329,18 @@ const ClientLayout = React.memo(function ClientLayout({
                         <PopoverContent className="w-[90vw] max-w-xs md:max-w-sm p-0" align="end">
                           <div className="flex items-center justify-between p-4 border-b">
                             <h3 className="font-semibold text-sm">{t.notifications}</h3>
-                            {unreadCount > 0 && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={markAllAsRead}
-                                className="text-xs"
-                              >
-                                {t.markAllAsRead || 'Mark all as read'}
-                              </Button>
-                            )}
+                            <div className="flex items-center gap-2">
+                              {unreadCount > 0 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={markAllAsRead}
+                                  className="text-xs"
+                                >
+                                  {t.markAllAsRead || 'Mark all as read'}
+                                </Button>
+                              )}
+                            </div>
                           </div>
                           <ScrollArea className="h-[60vh] md:h-96">
                             {notification.length > 0 ? (
@@ -391,16 +408,28 @@ const ClientLayout = React.memo(function ClientLayout({
                                   <DialogHeader>
                                     <DialogTitle className="flex items-center justify-between">
                                       <span>{t.allNotifications || 'All Notifications'}</span>
-                                      {unreadCount > 0 && (
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={markAllAsRead}
-                                          className="text-xs"
-                                        >
-                                          {t.markAllAsRead || 'Mark all as read'} ({unreadCount})
-                                        </Button>
-                                      )}
+                                      <div className="flex items-center gap-2 translate-x-[-17px]">
+                                        {unreadCount > 0 && (
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={markAllAsRead}
+                                            className="text-xs"
+                                          >
+                                            {t.markAllAsRead || 'Mark all as read'} ({unreadCount})
+                                          </Button>
+                                        )}
+                    {notification.length > 0 && (
+                                          <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={clearAllNotifications}
+                                            className="text-xs"
+                                          >
+                      {(t as any).deleteAll || t.delete || 'Delete all'}
+                                          </Button>
+                                        )}
+                                      </div>
                                     </DialogTitle>
                                   </DialogHeader>
                                   <ScrollArea className="h-[60vh]">

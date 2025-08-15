@@ -23,7 +23,8 @@ export function useLowStockMonitor() {
           lowStockThreshold: 10,
           enableLowStockAlerts: true,
           enableEmailNotifications: true,
-          enablePushNotifications: false
+          enablePushNotifications: false,
+          promptPayPhone: ""
         })
         return;
       }

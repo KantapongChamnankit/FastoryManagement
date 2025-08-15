@@ -80,10 +80,27 @@ export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchPro
         setIsScanning(false)
         if (foundProduct) {
             const existingItem = cart.find((item) => item.barcode === foundProduct.barcode)
+            const productLocks = locks.find(lock => lock._id === foundProduct.stock_location_id)
             if (existingItem) {
-                updateCartQuantity(foundProduct.barcode, existingItem.cartQuantity + 1)
-                setBarcode("")
-            } else {
+                if (productLocks) {
+                    if ((productLocks?.currentStock || 0) + ((existingItem.cartQuantity) + 1) <= (productLocks?.capacity || 0)) {
+                        updateCartQuantity(foundProduct.barcode, existingItem.cartQuantity + 1)
+                    } else {
+                        toast({
+                            title: (t as any).stockLimitReached || "Stock Limit Reached",
+                            description: (t as any).pleaseCheckLocks || "Please check the locks.",
+                            variant: "destructive",
+                        })
+                    }
+                    setBarcode("")
+                } else {
+                    toast({
+                        title: t.productNotFound || "Locks Not Found",
+                        description: t.pleaseCheckBarcode || "Please check the locks.",
+                        variant: "destructive",
+                    })
+                }
+            } else if ((productLocks?.currentStock || 0) !== (productLocks?.capacity || 0)) {
                 setCart([
                     ...cart,
                     {
@@ -99,6 +116,13 @@ export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchPro
                         cartQuantity: 1,
                     }
                 ])
+                setBarcode("")
+            } else {
+                toast({
+                    title: (t as any).stockLimitReached || "Stock Limit Reached",
+                    description: (t as any).pleaseCheckLocks || "Please check the locks.",
+                    variant: "destructive",
+                })
                 setBarcode("")
             }
         } else {
@@ -165,7 +189,7 @@ export function BarcodeScannerModal({ isOpen, onClose, mode, onConfirm, fetchPro
         }
 
         fetchCategoriesAndLocks()
-    }, [])
+    }, [product])
 
     const getTotalItems = () => cart.reduce((sum, item) => sum + item.cartQuantity, 0)
     const getTotalValue = () => cart.reduce((sum, item) => sum + item.unitPrice * item.cartQuantity, 0)

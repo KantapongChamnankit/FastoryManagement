@@ -61,6 +61,11 @@
 /* Override all border-radius to 0 for flat design */
 * {
   border-radius: 0 !important;
+  scrollbar-gutter: stable;
+}
+
+.example::-webkit-scrollbar {
+  display: none;
 }
 
 /* Custom scrollbar */

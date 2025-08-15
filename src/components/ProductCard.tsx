@@ -23,14 +23,14 @@ interface props {
 
 export function ProductCard({ filteredProducts, categories, locks, setSellProduct, setSellQuantity, setIsSellDialogOpen, setEditingProduct, setIsDeleteDialogOpen, setIsEditDialogOpen, setProductToDelete }: props) {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {filteredProducts.map((product) => (
                 <Card
                     key={product._id}
                     className="border border-slate-200 shadow-sm hover:shadow-lg transition-shadow group relative overflow-hidden"
                 >
-                    <CardContent className="p-4 flex flex-col h-full">
-                        <div className="relative mb-3 flex items-center justify-center bg-slate-50 rounded-lg h-32 overflow-hidden">
+                    <CardContent className="p-3 sm:p-4 flex flex-col h-full">
+                        <div className="relative mb-3 flex items-center justify-center bg-slate-50 rounded-lg h-28 sm:h-32 overflow-hidden">
                             <img
                                 src={product.image_id ? `/api/images/${product.image_id}` : "/placeholder.svg"}
                                 alt={product.name}
@@ -47,7 +47,7 @@ export function ProductCard({ filteredProducts, categories, locks, setSellProduc
                                 </Badge>
                             )}
                         </div>
-                        <div className="flex-1 flex flex-col gap-1">
+                        <div className="flex-1 flex flex-col gap-1 min-w-0">
                             <h3 className="font-semibold text-slate-900 truncate">{product.name}</h3>
                             <div className="flex items-center gap-2 text-xs text-slate-500">
                                 <span>
@@ -71,7 +71,7 @@ export function ProductCard({ filteredProducts, categories, locks, setSellProduc
                             </div>
                         </div>
                         <div className="flex items-center justify-between mt-3">
-                            <span className="text-lg font-bold text-blue-700">฿{product.price}</span>
+                            <span className="text-base sm:text-lg font-bold text-blue-700">฿{product.price}</span>
                             <div className="flex items-center gap-1">
                                 <Button
                                     size="sm"
